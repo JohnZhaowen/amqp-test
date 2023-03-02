@@ -280,6 +280,30 @@ public enum TestCaseEnum {
         this.slowConsumer = slowConsumer;
     }
 
+    public static List<TestCaseEnum> getCasesByPubsubCount(int count) {
+        return Arrays.stream(TestCaseEnum.values()).
+                filter(e -> e.pubsubCount == count).
+                collect(Collectors.toList());
+    }
+
+    public static List<TestCaseEnum> getOneToOneCases() {
+        return Arrays.stream(TestCaseEnum.values()).
+                filter(e -> e.pubsubCount == TestContents.PUB_1_SUB_1).
+                collect(Collectors.toList());
+    }
+
+    public static List<TestCaseEnum> getOneToTenCases() {
+        return Arrays.stream(TestCaseEnum.values()).
+                filter(e -> e.pubsubCount == TestContents.PUB_1_SUB_10).
+                collect(Collectors.toList());
+    }
+
+    public static List<TestCaseEnum> getTenToTenCases() {
+        return Arrays.stream(TestCaseEnum.values()).
+                filter(e -> e.pubsubCount == TestContents.PUB_10_SUB_10).
+                collect(Collectors.toList());
+    }
+
     public static TestCaseEnum getById(int testCaseId) {
         return Arrays.stream(TestCaseEnum.values()).
                 filter(e -> e.testCaseId == testCaseId).findFirst().orElse(null);

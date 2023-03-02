@@ -3,12 +3,14 @@ package com.john.framework.amqp.collectors;
 import com.john.framework.amqp.testcase.TestRawData;
 import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
+@Component
 public class TestResultCollector {
 
     private BlockingQueue<TestStatistics> statisticsQueue = new LinkedBlockingQueue<>();

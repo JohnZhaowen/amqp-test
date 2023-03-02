@@ -8,8 +8,6 @@ public class AmqpMessage {
 
     private String routingKey;
 
-    private boolean finished;
-
     private byte[] body;
 
     public int getTestCaseId() {
@@ -44,11 +42,4 @@ public class AmqpMessage {
         this.body = body;
     }
 
-    public boolean isFinished() {
-        return finished;
-    }
-
-    public void setFinished(boolean finished) {
-        this.finished = finished;
-    }
 }

@@ -1,34 +1,36 @@
 package com.john.framework.amqp.collectors;
 
-import com.john.framework.amqp.amqp.AmqpMessage;
-import com.john.framework.amqp.amqp.IPubSub;
-import com.john.framework.amqp.amqp.StatisticsConsumerMsgListener;
+import com.john.framework.amqp.amqp.*;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 public class TestCaseRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestCaseRunner.class);
 
-    @Value("appType")
+    @Value("${appType}")
     private String appType;
 
-    @Value("uniqueId")
-    private String uniqueId;
+    @Value("${uniqueId}")
+    private int uniqueId;
 
     private TestResultCollector collector;
 
     private IPubSub pubSub;
 
+    @Autowired
     public TestCaseRunner(TestResultCollector collector, IPubSub pubSub) {
         this.collector = collector;
         this.pubSub = pubSub;
@@ -40,38 +42,80 @@ public class TestCaseRunner {
             return;
         }
 
-        int caseCount = cases.size();
-        int finished = 0;
-        for (TestCaseEnum testCase : cases) {
-            LOG.info("start run case: [{}]", testCase);
+        switch (appType) {
+            case "pubsub":
+                doPubsub(cases);
+                break;
+            case "pub":
+                doPub(cases);
+                break;
+            case "sub":
+                doSub(cases);
+                break;
+            default:
+                throw new IllegalArgumentException("appType: " + appType + " is not valid.");
 
-            doRun(testCase);
-            //TODO 清理工作
-            LOG.info("end run case: [{}], already run : [{}]", testCase, (++finished) + "/" + caseCount);
         }
 
     }
 
-    private void doRun(TestCaseEnum testCase) {
+    private void doPubsub(List<TestCaseEnum> cases) {
 
-        //PUB
-        AmqpMessage msg = new AmqpMessage();
-        msg.setTestCaseId(testCase.testCaseId);
-        msg.setRoutingKey(RoutingKeyGenerator.generate());
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        //执行sub
+        executorService.execute(() -> {
+            cases.forEach(testCase -> {
+                pubSub.sub(TestContents.BINDING_KEY,
+                        TestContents.EXCHAGE,
+                        TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                        testCase.durable,
+                        new StatisticsConsumerMsgListener(collector, testCase)
+                );
+            });
 
-        msg.setBody(MessageBodyGenerator.generate(testCase.msgSize));
-        msg.setTimestampInNanos(System.nanoTime());
-        msg.setFinished(true);
-        pubSub.pub(msg, TestContents.EXCHAGE, testCase.durable);
+        });
 
-        //SUB
-        pubSub.sub(TestContents.BINDING_KEY,
-                TestContents.EXCHAGE,
-                TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
-                false,
-                new StatisticsConsumerMsgListener(collector)
-        );
+        //执行pub
+        executorService.execute(() -> doPub(cases));
     }
 
+    private void doSub(List<TestCaseEnum> cases) {
+
+        cases.forEach(testCase -> {
+            pubSub.sub(TestContents.BINDING_KEY,
+                    TestContents.EXCHAGE,
+                    TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                    testCase.durable,
+                    testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener()
+            );
+        });
+    }
+
+
+    private void doPub(List<TestCaseEnum> cases) {
+        cases.forEach(this::doSendMsg);
+    }
+
+    private void doSendMsg(TestCaseEnum testCase) {
+
+        int msgSendRate = testCase.msgSendRate;
+
+        int totalSendMsgCount = msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
+
+        int sendedCount = 0;
+
+        //RateLimiter
+        AmqpMessage msg = new AmqpMessage();
+        msg.setTestCaseId(testCase.testCaseId);
+        msg.setBody(MessageBodyGenerator.generate(testCase.msgSize));
+
+        while (sendedCount < totalSendMsgCount) {
+            msg.setRoutingKey(RoutingKeyGenerator.generate());
+            msg.setTimestampInNanos(System.nanoTime());
+            //rateLimiter
+            pubSub.pub(msg, TestContents.EXCHAGE, testCase.durable);
+            sendedCount++;
+        }
+    }
 
 }

@@ -2,6 +2,8 @@ package com.john.framework.amqp.amqp;
 
 import com.john.framework.amqp.collectors.TestCaseRunner;
 import com.john.framework.amqp.collectors.TestResultCollector;
+import com.john.framework.amqp.testcase.TestCaseEnum;
+import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.StatisticsUtils;
 import org.slf4j.Logger;
@@ -19,15 +21,28 @@ public class StatisticsConsumerMsgListener implements IMsgListener {
 
     private TestResultCollector collector;
 
+    private int totalCount;
+
+    private int recvCount = 0;
+    private int warnUpCount;
+
+    private boolean running = true;
+
     private List<Integer> latencyInUs = new LinkedList<>();
 
-    public StatisticsConsumerMsgListener(TestResultCollector collector) {
+    public StatisticsConsumerMsgListener(TestResultCollector collector, TestCaseEnum testCaseEnum) {
         this.collector = collector;
+        totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
+        warnUpCount = testCaseEnum.msgSendRate * TestContents.WARNUP_TIME_IN_SECONDS;
     }
 
     public void onMsg(AmqpMessage msg) {
 
-        if (msg.isFinished()) {
+        if(!running){
+            return;
+        }
+
+        if ((++recvCount) >= totalCount) {
             TestStatistics statistics = StatisticsUtils.cal(latencyInUs, msg.getTestCaseId());
             collector.addStatistics(statistics);
             latencyInUs.clear();
@@ -35,11 +50,18 @@ public class StatisticsConsumerMsgListener implements IMsgListener {
         }
 
         //计算延时
-        long recvNanos = System.nanoTime();
-        long sendNano = msg.getTimestampInNanos();
+        if ((++recvCount) > warnUpCount) {
+            long recvNanos = System.nanoTime();
+            long sendNano = msg.getTimestampInNanos();
 
-        int letencyUs = (int) ((recvNanos - sendNano) / 1000);
-        latencyInUs.add(letencyUs);
+            int letencyUs = (int) ((recvNanos - sendNano) / 1000);
+            latencyInUs.add(letencyUs);
+        }
+    }
 
+    public void close() {
+        collector = null;
+        latencyInUs = null;
+        running = false;
     }
 }
