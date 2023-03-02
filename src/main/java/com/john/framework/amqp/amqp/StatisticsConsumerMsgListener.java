@@ -25,12 +25,12 @@ public class StatisticsConsumerMsgListener implements IMsgListener {
         this.collector = collector;
     }
 
-    public void onEvent(AmqpMessage msg) {
+    public void onMsg(AmqpMessage msg) {
 
         if (msg.isFinished()) {
             TestStatistics statistics = StatisticsUtils.cal(latencyInUs, msg.getTestCaseId());
             collector.addStatistics(statistics);
-
+            latencyInUs.clear();
             LOG.info("testCase [{}] run resule: [{}]", msg.getTestCaseId(), statistics);
         }
 
