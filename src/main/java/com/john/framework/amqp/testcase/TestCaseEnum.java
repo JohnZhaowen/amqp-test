@@ -280,30 +280,6 @@ public enum TestCaseEnum {
         this.slowConsumer = slowConsumer;
     }
 
-    public static List<TestCaseEnum> getCasesByPubsubCount(int count) {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> e.pubsubCount == count).
-                collect(Collectors.toList());
-    }
-
-    public static List<TestCaseEnum> getOneToOneCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> e.pubsubCount == TestContents.PUB_1_SUB_1).
-                collect(Collectors.toList());
-    }
-
-    public static List<TestCaseEnum> getOneToTenCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> e.pubsubCount == TestContents.PUB_1_SUB_10).
-                collect(Collectors.toList());
-    }
-
-    public static List<TestCaseEnum> getTenToTenCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> e.pubsubCount == TestContents.PUB_10_SUB_10).
-                collect(Collectors.toList());
-    }
-
     public static TestCaseEnum getById(int testCaseId) {
         return Arrays.stream(TestCaseEnum.values()).
                 filter(e -> e.testCaseId == testCaseId).findFirst().orElse(null);
@@ -315,33 +291,17 @@ public enum TestCaseEnum {
                 collect(Collectors.toList());
     }
 
-    public static List<TestCaseEnum> getDurableCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> e.durable).
-                collect(Collectors.toList());
-    }
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder("TestCase: [\n");
+        sb.append("testCaseId: ").append(testCaseId).append("\n")
+                .append("msgSize: ").append(msgSize).append("bytes \n")
+                .append("msgSendRate: ").append(msgSendRate).append("\n")
+                .append("pubsubCount: ").append(pubsubCount).append("\n")
+                .append("durable").append(durable).append("\n")
+                .append("slowConsumer: ").append(slowConsumer).append("\n")
+                .append("]\n");
+        return sb.toString();
 
-    public static List<TestCaseEnum> getNonDurableCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> !e.durable).
-                collect(Collectors.toList());
-    }
-
-    public static List<TestCaseEnum> getSlowConsumerCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> e.slowConsumer).
-                collect(Collectors.toList());
-    }
-
-    public static List<TestCaseEnum> getNonSlowConsumerCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> !e.slowConsumer).
-                collect(Collectors.toList());
-    }
-
-    public static List<TestCaseEnum> getDurableAndSlowConsumerCases() {
-        return Arrays.stream(TestCaseEnum.values()).
-                filter(e -> e.durable && e.slowConsumer).
-                collect(Collectors.toList());
     }
 }

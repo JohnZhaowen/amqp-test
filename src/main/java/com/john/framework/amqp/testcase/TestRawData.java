@@ -8,6 +8,11 @@ public class TestRawData {
 
     private double latency;
 
+    public TestRawData(int testCaseId, double latency) {
+        this.testCaseId = testCaseId;
+        this.latency = latency;
+    }
+
     public String[] toStringArr(){
 
         DecimalFormat df = new DecimalFormat("0.00");
@@ -30,10 +35,7 @@ public class TestRawData {
     }
 
     public static void main(String[] args) {
-        TestRawData d = new TestRawData();
-        d.setTestCaseId(10);
-        d.setLatency(19387.108763);
-
+        TestRawData d = new TestRawData(10, 19387.108763);
         System.out.println(d.toString());
     }
 

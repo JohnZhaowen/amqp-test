@@ -2,19 +2,18 @@ package com.john.framework.amqp.utils;
 
 import com.john.framework.amqp.testcase.TestStatistics;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.Arrays;
 
 public class StatisticsUtils {
 
-    public static TestStatistics cal(List<Integer> latencyInUs, int testCaseId) {
+    public static TestStatistics cal(int[] latencyInUs, int testCaseId) {
         TestStatistics statistics = new TestStatistics();
         statistics.setTestCaseId(testCaseId);
 
-        latencyInUs.sort(Comparator.comparingInt(e -> e));
+        Arrays.sort(latencyInUs);
 
-        double avg=0.0;
-        int size = latencyInUs.size();
+        double avg = 0.0;
+        int size = latencyInUs.length;
         int longLatencyCount = 0;
 
         for (Integer inUs : latencyInUs) {
@@ -26,12 +25,12 @@ public class StatisticsUtils {
 
         avg /= size;
         double stdDev = MathUils.calStdDev(avg, latencyInUs);
-        double min = latencyInUs.get(0);
-        double max = latencyInUs.get(size - 1);
-        double latency90Us = latencyInUs.get((int) (size * 0.9));
-        double latency95Us = latencyInUs.get((int) (size * 0.95));
-        double latency99Us = latencyInUs.get((int) (size * 0.99));
-        double latency99_9Us = latencyInUs.get((int) (size * 0.999));
+        double min = latencyInUs[0];
+        double max = latencyInUs[size - 1];
+        double latency90Us = latencyInUs[(int) (size * 0.9)];
+        double latency95Us = latencyInUs[(int) (size * 0.95)];
+        double latency99Us = latencyInUs[(int) (size * 0.99)];
+        double latency99_9Us = latencyInUs[(int) (size * 0.999)];
 
         statistics.setAvgUs(avg);
         statistics.setStdDev(stdDev);
