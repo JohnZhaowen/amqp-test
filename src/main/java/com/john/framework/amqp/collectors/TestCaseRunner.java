@@ -9,14 +9,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Component
-public class TestCaseRunner {
+public class TestCaseRunner implements CommandLineRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestCaseRunner.class);
 
@@ -26,15 +29,15 @@ public class TestCaseRunner {
     @Value("${uniqueId}")
     private int uniqueId;
 
+    @Autowired
     private TestResultCollector collector;
 
+    @Autowired
     private IPubSub pubSub;
 
     @Autowired
-    public TestCaseRunner(TestResultCollector collector, IPubSub pubSub) {
-        this.collector = collector;
-        this.pubSub = pubSub;
-    }
+    private Environment environment;
+
 
     public void runTestCases(List<TestCaseEnum> cases) {
         if (cases == null || cases.size() == 0) {
@@ -118,4 +121,10 @@ public class TestCaseRunner {
         }
     }
 
+    @Override
+    public void run(String... args) throws Exception {
+        int pubsubCount = Integer.parseInt(Objects.requireNonNull(environment.getProperty("pubsubCount")));
+        List<TestCaseEnum> cases = TestCaseEnum.getCasesByPubsubCount(pubsubCount);
+        runTestCases(cases);
+    }
 }
