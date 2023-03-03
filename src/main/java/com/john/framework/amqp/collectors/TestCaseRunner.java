@@ -1,5 +1,6 @@
 package com.john.framework.amqp.collectors;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.john.framework.amqp.amqp.*;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
@@ -8,12 +9,12 @@ import com.john.framework.amqp.utils.RoutingKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,30 +31,43 @@ public class TestCaseRunner implements CommandLineRunner {
     private int uniqueId;
 
     @Autowired
-    private TestResultCollector collector;
+    @Qualifier("pub")
+    private IPubSub pub;
 
     @Autowired
-    private IPubSub pubSub;
+    @Qualifier("sub")
+    private IPubSub sub;
 
     @Autowired
     private Environment environment;
 
+    @Override
+    public void run(String... args) {
+        int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
+        TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
+        runTestCases(testCaseEnum);
+    }
 
-    public void runTestCases(List<TestCaseEnum> cases) {
-        if (cases == null || cases.size() == 0) {
+    @Autowired
+    public TestCaseRunner() {
+
+    }
+
+    public void runTestCases(TestCaseEnum testCase) {
+        if (testCase == null) {
             LOG.warn("no test case to run");
             return;
         }
 
         switch (appType) {
             case "pubsub":
-                doPubsub(cases);
+                doPubsub(testCase);
                 break;
             case "pub":
-                doPub(cases);
+                doPub(testCase);
                 break;
             case "sub":
-                doSub(cases);
+                doSub(testCase);
                 break;
             default:
                 throw new IllegalArgumentException("appType: " + appType + " is not valid.");
@@ -62,69 +76,60 @@ public class TestCaseRunner implements CommandLineRunner {
 
     }
 
-    private void doPubsub(List<TestCaseEnum> cases) {
+    private void doPubsub(TestCaseEnum testCase) {
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         //执行sub
         executorService.execute(() -> {
-            cases.forEach(testCase -> {
-                pubSub.sub(TestContents.BINDING_KEY,
-                        TestContents.EXCHAGE,
-                        TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
-                        testCase.durable,
-                        new StatisticsConsumerMsgListener(collector, testCase)
-                );
-            });
-
+            sub.sub(TestContents.BINDING_KEY,
+                    TestContents.EXCHAGE,
+                    testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                    testCase.durable,
+                    new StatisticsConsumerMsgListener(testCase)
+            );
         });
 
         //执行pub
-        executorService.execute(() -> doPub(cases));
+        executorService.execute(() -> doPub(testCase));
     }
 
-    private void doSub(List<TestCaseEnum> cases) {
-
-        cases.forEach(testCase -> {
-            pubSub.sub(TestContents.BINDING_KEY,
-                    TestContents.EXCHAGE,
-                    TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
-                    testCase.durable,
-                    testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener()
-            );
-        });
+    /**
+     * 调用该方法的只会是只进行sub的节点
+     *
+     * @param testCase
+     */
+    private void doSub(TestCaseEnum testCase) {
+        sub.sub(TestContents.BINDING_KEY,
+                TestContents.EXCHAGE,
+                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                testCase.durable,
+                //只选择节点5进行满消费测试
+                testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener()
+        );
     }
 
 
-    private void doPub(List<TestCaseEnum> cases) {
-        cases.forEach(this::doSendMsg);
-    }
-
-    private void doSendMsg(TestCaseEnum testCase) {
+    private void doPub(TestCaseEnum testCase) {
 
         int msgSendRate = testCase.msgSendRate;
-
         int totalSendMsgCount = msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
+        RateLimiter rateLimiter = RateLimiter.create(msgSendRate);
 
-        int sendedCount = 0;
-
-        //RateLimiter
         AmqpMessage msg = new AmqpMessage();
         msg.setTestCaseId(testCase.testCaseId);
         msg.setBody(MessageBodyGenerator.generate(testCase.msgSize));
 
+        LOG.info("start pub msgs.");
+        int sendedCount = 0;
+
         while (sendedCount < totalSendMsgCount) {
             msg.setRoutingKey(RoutingKeyGenerator.generate());
             msg.setTimestampInNanos(System.nanoTime());
-            //rateLimiter
-            pubSub.pub(msg, TestContents.EXCHAGE, testCase.durable);
+
+            rateLimiter.acquire();
+            pub.pub(msg, TestContents.EXCHAGE, testCase.durable);
             sendedCount++;
         }
-    }
-
-    @Override
-    public void run(String... args) throws Exception {
-        int pubsubCount = Integer.parseInt(Objects.requireNonNull(environment.getProperty("pubsubCount")));
-        List<TestCaseEnum> cases = TestCaseEnum.getCasesByPubsubCount(pubsubCount);
-        runTestCases(cases);
+        LOG.info("end pub msgs...");
     }
 }

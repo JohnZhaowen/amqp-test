@@ -2,8 +2,8 @@ package com.john.framework.amqp.amqp;
 
 import org.springframework.stereotype.Component;
 
-@Component
-public class MyPubSub implements IPubSub{
+@Component("sub")
+public class MySub implements IPubSub{
 
     @Override
     public boolean pub(AmqpMessage msg, String exch, boolean persist) {
