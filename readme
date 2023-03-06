@@ -9,7 +9,8 @@ TestCaseEnum
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=1
 
 3.1 testCase 1:
-java -jar amqp-test-1.0.0.jar --testCaseId=1
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=1 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=1 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=1 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=1 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=1 &
@@ -21,7 +22,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=1 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=1 &
 
 3.2 testCase 2:
-java -jar amqp-test-1.0.0.jar --testCaseId=2
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=2 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=2 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=2 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=2 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=2 &
@@ -34,7 +36,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=2 &
 
 
 3.3 testCase 3:
-java -jar amqp-test-1.0.0.jar --testCaseId=3
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=3 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=3 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=3 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=3 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=3 &
@@ -47,7 +50,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=3 &
 
 
 3.4 testCase 4:
-java -jar amqp-test-1.0.0.jar --testCaseId=4
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=4 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=4 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=4 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=4 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=4 &
@@ -60,13 +64,14 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=4 &
 
 
 3.5 testCase 5:
-java -jar amqp-test-1.0.0.jar --testCaseId=5
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=5 &
 
 3.6 testCase 6:
-java -jar amqp-test-1.0.0.jar --testCaseId=6
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=6 &
 
 3.7 testCase 7:
-java -jar amqp-test-1.0.0.jar --testCaseId=7
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=7 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=7 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=7 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=7 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=7 &
@@ -78,7 +83,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=7 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=7 &
 
 3.8 testCase 8:
-java -jar amqp-test-1.0.0.jar --testCaseId=8
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=8 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=8 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=8 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=8 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=8 &
@@ -91,37 +97,40 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=8 &
 
 
 3.9 testCase 9:
-java -jar amqp-test-1.0.0.jar --testCaseId=9
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=9 &
+
 
 3.10 testCase 10:
-java -jar amqp-test-1.0.0.jar --testCaseId=10
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=10 &
 
 
 3.11 testCase 11:
-java -jar amqp-test-1.0.0.jar --testCaseId=11
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=11 &
 
 
 3.12 testCase 12:
-java -jar amqp-test-1.0.0.jar --testCaseId=12
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=12 &
 
 
 3.13 testCase 13:
-java -jar amqp-test-1.0.0.jar --testCaseId=13
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=13 &
 
 
 3.14 testCase 14:
-java -jar amqp-test-1.0.0.jar --testCaseId=14
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=14 &
 
 
 3.15 testCase 15:
-java -jar amqp-test-1.0.0.jar --testCaseId=15
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=15 &
 
 
 3.16 testCase 16:
-java -jar amqp-test-1.0.0.jar --testCaseId=16
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=16 &
+
 
 3.17 testCase 17:
-java -jar amqp-test-1.0.0.jar --testCaseId=17
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=17 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=17 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=17 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=17 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=17 &
@@ -133,7 +142,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=17 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=17 &
 
 3.18 testCase 18:
-java -jar amqp-test-1.0.0.jar --testCaseId=18
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=18 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=18 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=18 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=18 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=18 &
@@ -145,7 +155,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=18 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=18 &
 
 3.19 testCase 19:
-java -jar amqp-test-1.0.0.jar --testCaseId=19
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=19 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=19 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=19 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=19 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=19 &
@@ -157,7 +168,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=19 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=19 &
 
 3.20 testCase 20:
-java -jar amqp-test-1.0.0.jar --testCaseId=20
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=20 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=20 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=20 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=20 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=20 &
@@ -169,7 +181,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=20 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=20 &
 
 3.21 testCase 21:
-java -jar amqp-test-1.0.0.jar --testCaseId=21
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=21 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=21 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=21 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=21 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=21 &
@@ -181,7 +194,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=21 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=21 &
 
 3.22 testCase 22:
-java -jar amqp-test-1.0.0.jar --testCaseId=22
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=22 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=22 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=22 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=22 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=22 &
@@ -193,7 +207,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=22 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=22 &
 
 3.23 testCase 23:
-java -jar amqp-test-1.0.0.jar --testCaseId=23
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=23 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=subp --testCaseId=23 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=23 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=23 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=23 &
@@ -205,7 +220,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=23 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=23 &
 
 3.24 testCase 24:
-java -jar amqp-test-1.0.0.jar --testCaseId=24
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=24 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=24 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=24 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=24 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=24 &
@@ -217,7 +233,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=24 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=24 &
 
 3.25 testCase 25:
-java -jar amqp-test-1.0.0.jar --testCaseId=25
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=25 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=25 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=25 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=25 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=25 &
@@ -229,7 +246,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=25 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=25 &
 
 3.26 testCase 26:
-java -jar amqp-test-1.0.0.jar --testCaseId=26
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=26 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=26 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=26 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=26 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=26 &
@@ -241,7 +259,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=26 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=26 &
 
 3.27 testCase 27:
-java -jar amqp-test-1.0.0.jar --testCaseId=27
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=27 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=27 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=27 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=27 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=27 &
@@ -253,7 +272,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=27 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=27 &
 
 3.28 testCase 28:
-java -jar amqp-test-1.0.0.jar --testCaseId=28
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=28 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=28 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=28 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=28 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=28 &
@@ -265,7 +285,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=28 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=28 &
 
 3.29 testCase 29:
-java -jar amqp-test-1.0.0.jar --testCaseId=29
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=29 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=29 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=29 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=29 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=29 &
@@ -277,7 +298,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=29 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=29 &
 
 3.30 testCase 30:
-java -jar amqp-test-1.0.0.jar --testCaseId=30
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=30 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=30 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=30 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=30 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=30 &
@@ -289,7 +311,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=30 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=30 &
 
 3.31 testCase 31:
-java -jar amqp-test-1.0.0.jar --testCaseId=31
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=31 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=31 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=31 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=31 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=31 &
@@ -301,7 +324,8 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=31 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=31 &
 
 3.32 testCase 32:
-java -jar amqp-test-1.0.0.jar --testCaseId=32
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=32 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=32 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=32 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=32 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=32 &
@@ -313,7 +337,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=32 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=32 &
 
 3.33 testCase 33:
-java -jar amqp-test-1.0.0.jar --testCaseId=33
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub1 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub2 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub3 --testCaseId=33 &
@@ -323,6 +347,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub6 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub7 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub8 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub9 --testCaseId=33 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=33 &
@@ -334,7 +359,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=33 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=33 &
 
 3.34 testCase 34:
-java -jar amqp-test-1.0.0.jar --testCaseId=34
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub1 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub2 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub3 --testCaseId=34 &
@@ -344,6 +369,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub6 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub7 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub8 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub9 --testCaseId=34 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=34 &
@@ -355,7 +381,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=34 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=34 &
 
 3.35 testCase 35:
-java -jar amqp-test-1.0.0.jar --testCaseId=35
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub1 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub2 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub3 --testCaseId=35 &
@@ -365,6 +391,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub6 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub7 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub8 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub9 --testCaseId=35 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=35 &
@@ -376,7 +403,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=35 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=35 &
 
 3.36 testCase 36:
-java -jar amqp-test-1.0.0.jar --testCaseId=36
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub0 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub1 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub2 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub3 --testCaseId=36 &
@@ -386,6 +413,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub6 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub7 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub8 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pub9 --testCaseId=36 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub0 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub1 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub3 --testCaseId=36 &
@@ -395,22 +423,3 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub6 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub7 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=36 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=36 &
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
