@@ -33,12 +33,7 @@ public class TestCaseRunner implements CommandLineRunner {
     private int uniqueId;
 
     @Autowired
-    @Qualifier("pub")
-    private IPubSub pub;
-
-    @Autowired
-    @Qualifier("sub")
-    private IPubSub sub;
+    private IPubSub pubSub;
 
     @Autowired
     private Environment environment;
@@ -79,10 +74,10 @@ public class TestCaseRunner implements CommandLineRunner {
 
     private void doPubsub(TestCaseEnum testCase) {
 
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        /*ExecutorService executorService = Executors.newFixedThreadPool(2);
         //TODO 执行sub，一定要绑定endMark，也就是至少要绑定两个key
         executorService.execute(() -> {
-            sub.sub(BindingKeyGenerator.generate(),
+            pubSub.sub(BindingKeyGenerator.generate(),
                     TestContents.EXCHAGE,
                     testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                     testCase.durable,
@@ -91,7 +86,15 @@ public class TestCaseRunner implements CommandLineRunner {
         });
 
         //执行pub
-        executorService.execute(() -> doPub(testCase));
+        executorService.execute(() -> doPub(testCase));*/
+        //订阅
+        boolean sub = pubSub.sub(BindingKeyGenerator.generate(),
+                TestContents.EXCHAGE,
+                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                testCase.durable,null);
+        if(sub){
+            doPub(testCase);
+        }
     }
 
     /**
@@ -100,7 +103,7 @@ public class TestCaseRunner implements CommandLineRunner {
      * @param testCase
      */
     private void doSub(TestCaseEnum testCase) {
-        sub.sub(BindingKeyGenerator.generate(),
+        pubSub.sub(BindingKeyGenerator.generate(),
                 TestContents.EXCHAGE,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,
@@ -127,12 +130,12 @@ public class TestCaseRunner implements CommandLineRunner {
             //msg.setRoutingKey(RoutingKeyGenerator.generate());
             msg.setTimestampInNanos(System.nanoTime());
             rateLimiter.acquire();
-            pub.pub(msg, RoutingKeyGenerator.generate(), durable);
+            pubSub.pub(msg, RoutingKeyGenerator.generate(), durable);
             sendedCount++;
         }
         //发送endMark消息
         msg.setEndMark((short)1);
-        pub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
+        pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
 
         LOG.info("end pub msgs...");
     }

@@ -20,19 +20,19 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
 
     @Override
     public void OnConnected() {
-        logger.info("sub client connected to broker!");
+        logger.info("OnConnected callback, sub client connected to broker!");
         connect = true;
     }
 
     @Override
     public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
-        logger.warn("sub client disconnected to broker! error code:"+pErrorInfo.getErrorId()+
+        logger.warn("OnDisconnected callback, sub client disconnected to broker! error code:"+pErrorInfo.getErrorId()+
                 ",error msg:"+pErrorInfo.getErrorMessage());
     }
 
     @Override
     public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
-        logger.info("sub client Subscribed success ,queue name:"+pQueue);
+        logger.info("OnRtnSubscribe callback, sub client Subscribed success ,queue name:"+pQueue);
         if(pErrorInfo.getErrorId()==0){
             subscribe = true;
         }

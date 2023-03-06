@@ -6,26 +6,24 @@ import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
-@Component("pub")
 public class MyPub implements IPubSub{
 
     private static final Logger logger = LoggerFactory.getLogger(MySub.class);
 
     private KSKingMQ ksKingMQ;
+
     private volatile boolean  init = false;
 
-    @PostConstruct
     public void init(){
         if(init){
             logger.info("KSKingMQ is init");
             return ;
         }
-        ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
+        init = true;
         //注册一个回调 不订订阅即可
+
+        ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         NoopMsgListener ksKingMQSPI = new NoopMsgListener();
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
@@ -36,7 +34,6 @@ public class MyPub implements IPubSub{
         }
         while (true){
             if(ksKingMQSPI.connect()){
-                init = true;
                 break;
             }
             try {

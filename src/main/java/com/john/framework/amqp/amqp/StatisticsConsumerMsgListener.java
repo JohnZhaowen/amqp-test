@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TestCaseRunner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerMsgListener.class);
 
     private int totalCount;
 
@@ -36,19 +36,19 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
     @Override
     public void OnConnected() {
-        LOG.info("sub client connected to broker!");
+        LOG.info("OnConnected callback, sub client connected to broker!");
         connect = true;
     }
 
     @Override
     public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
-        LOG.warn("sub client disconnected to broker! error code:"+pErrorInfo.getErrorId()+
+        LOG.warn("OnDisconnected callback, sub client disconnected to broker! error code:"+pErrorInfo.getErrorId()+
                 ",error msg:"+pErrorInfo.getErrorMessage());
     }
 
     @Override
     public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
-        LOG.info("sub client Subscribed success ,queue name:"+pQueue);
+        LOG.info("OnRtnSubscribe callback, sub client Subscribed success ,queue name:"+pQueue);
         if(pErrorInfo.getErrorId()==0){
             subscribe = true;
         }
@@ -66,7 +66,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
         }
     }
 
-    public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
+    /*public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
 
@@ -74,7 +74,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
         latencyInUs = new int[totalCount - warmUpCount];
         LOG.info("listener build for testCase: [{}], should send [{}] msgs.", testCaseEnum.testCaseId, totalCount);
-    }
+    }*/
 
     public void onMsg(AmqpMessage msg) {
 

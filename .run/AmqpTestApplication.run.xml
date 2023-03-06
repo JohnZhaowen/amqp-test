@@ -5,7 +5,7 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.john.framework.amqp.AmqpTestApplication" />
     <module name="amqp-test" />
-    <option name="PROGRAM_PARAMETERS" value="--spring.profiles.active=sub2" />
+    <option name="PROGRAM_PARAMETERS" value="--spring.profiles.active=pubsub1" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.john.framework.amqp.*" />

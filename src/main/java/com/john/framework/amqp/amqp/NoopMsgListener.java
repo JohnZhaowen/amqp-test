@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class NoopMsgListener extends KSKingMQSPI implements IMsgListener{
 
-    private static final Logger logger = LoggerFactory.getLogger(SlowConsumerMsgListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(NoopMsgListener.class);
 
     private volatile boolean connect = false;
 

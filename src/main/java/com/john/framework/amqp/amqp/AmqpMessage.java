@@ -13,13 +13,13 @@ public class AmqpMessage implements Serializable {
     @StructField(order = 0)
     private int testCaseId;
 
-    @StructField(order = 2)
+    @StructField(order = 1)
     private long timestampInNanos;
 
-    @StructField(order = 3)
+    @StructField(order = 2)
     private short endMark;
 
-    @StructField(order = 4)
+    @StructField(order = 3)
     private byte[] body;
 
     public AmqpMessage(int packetSize) {

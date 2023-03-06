@@ -7,9 +7,7 @@ import com.kingstar.messaging.api.QueueType;
 import com.kingstar.messaging.api.ReqSubscribeField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-@Component("sub")
 public class MySub implements IPubSub{
 
     private static final Logger logger = LoggerFactory.getLogger(MySub.class);
@@ -19,13 +17,26 @@ public class MySub implements IPubSub{
         return false;
     }
 
+    private KSKingMQ ksKingMQ;
+
+    private volatile boolean  init = false;
+
+    public void init(){
+        if(init){
+            logger.info("KSKingMQ is init");
+            return ;
+        }
+        init = true;
+        //创建 KSMQ client实例
+        ksKingMQ = KSKingMQ.CreateKingMQ("./config_sub.ini");
+
+    }
+
     @Override
     public boolean sub(String bindingkey, String exch, String queue, boolean durable, IMsgListener listener) {
-        //创建 pub client
-        KSKingMQ pubClient = KSKingMQ.CreateKingMQ("./config_sub.ini");
         KSKingMQSPI ksKingMQSPI = (KSKingMQSPI)listener;
         //连接 broker
-        APIResult apiResult = pubClient.ConnectServer(ksKingMQSPI);
+        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
         if(apiResult.swigValue() != APIResult.SUCCESS.swigValue()){
             logger.error("connect server failed! error code:{},,error msg:{}",apiResult.swigValue(),
                     apiResult.toString());
@@ -48,7 +59,7 @@ public class MySub implements IPubSub{
                 queueType.setOffset(0);
                 queueType.setQueue(queue);
                 reqSubscribeField.setElems(queueType);
-                APIResult subResult = pubClient.ReqSubscribe(reqSubscribeField);
+                APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
                 if(subResult.swigValue() != APIResult.SUCCESS.swigValue()){
                     logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",
                             queueType.getQueue(),queueType.getBindingKey(),subResult.swigValue(),subResult.toString());
