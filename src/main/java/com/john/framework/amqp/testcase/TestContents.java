@@ -6,7 +6,8 @@ package com.john.framework.amqp.testcase;
  */
 public interface TestContents {
 
-    String BINDING_KEY = "pilot.default.JET.SZ.*.*.*.*.*.*";
+    String[] EXCHANGES = {"ENDMARK", "SZEX", "SHEX", "CFETS", "gold", "bond", "xbond", "fx", "option", "dimple"};
+
     String EXCHAGE = "FAST";
     String NONDURABLE_QUEUE_PREFIX = "fast-shared-durable-";
     String DURABLE_QUEUE_PREFIX = "fast-shared-nondurable-";

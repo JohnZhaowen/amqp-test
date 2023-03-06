@@ -1,9 +1,10 @@
-package com.john.framework.amqp.collectors;
+package com.john.framework.amqp.runner;
 
 import com.google.common.util.concurrent.RateLimiter;
 import com.john.framework.amqp.amqp.*;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
+import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
 import org.slf4j.Logger;
@@ -43,14 +44,13 @@ public class TestCaseRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+
         int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
+
+        LOG.info("run env: uniqueId[{}], appType[{}], testCaseId[{}]", uniqueId, appType, testCaseId);
+
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
         runTestCases(testCaseEnum);
-    }
-
-    @Autowired
-    public TestCaseRunner() {
-
     }
 
     public void runTestCases(TestCaseEnum testCase) {
@@ -79,9 +79,9 @@ public class TestCaseRunner implements CommandLineRunner {
     private void doPubsub(TestCaseEnum testCase) {
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
-        //执行sub
+        //TODO 执行sub，一定要绑定endMark，也就是至少要绑定两个key
         executorService.execute(() -> {
-            sub.sub(TestContents.BINDING_KEY,
+            sub.sub(BindingKeyGenerator.generate(),
                     TestContents.EXCHAGE,
                     testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                     testCase.durable,
@@ -99,7 +99,7 @@ public class TestCaseRunner implements CommandLineRunner {
      * @param testCase
      */
     private void doSub(TestCaseEnum testCase) {
-        sub.sub(TestContents.BINDING_KEY,
+        sub.sub(BindingKeyGenerator.generate(),
                 TestContents.EXCHAGE,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,
@@ -130,6 +130,11 @@ public class TestCaseRunner implements CommandLineRunner {
             pub.pub(msg, TestContents.EXCHAGE, testCase.durable);
             sendedCount++;
         }
+        //发送endMark消息
+        msg.setEndMark(false);
+        msg.setRoutingKey(RoutingKeyGenerator.generateEndMsgRoutingKey());
+        pub.pub(msg, TestContents.EXCHAGE, testCase.durable);
+
         LOG.info("end pub msgs...");
     }
 }

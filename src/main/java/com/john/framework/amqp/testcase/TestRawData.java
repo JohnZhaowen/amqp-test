@@ -29,14 +29,18 @@ public class TestRawData {
         DecimalFormat df = new DecimalFormat("0.00");
 
         StringBuilder sb = new StringBuilder();
-        return sb.append("testCaseId: ").append(this.testCaseId).append("\n")
-                .append(", latency: ").append(df.format(this.latency))
+        return sb.append("testCaseId: ").append(this.testCaseId).append(", \n")
+                .append("latency: ").append(df.format(this.latency))
                 .toString();
     }
 
     public static void main(String[] args) {
         TestRawData d = new TestRawData(10, 19387.108763);
-        System.out.println(d.toString());
+//        System.out.println(d);
+
+        for (String s : d.toStringArr()) {
+            System.out.println(s);
+        }
     }
 
     public int getTestCaseId() {
@@ -54,4 +58,6 @@ public class TestRawData {
     public void setLatency(double latency) {
         this.latency = latency;
     }
+
+
 }

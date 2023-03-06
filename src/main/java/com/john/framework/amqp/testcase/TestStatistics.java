@@ -45,17 +45,37 @@ public class TestStatistics {
         DecimalFormat df = new DecimalFormat("0.00");
 
         StringBuilder sb = new StringBuilder();
-        return sb.append("testCaseId: ").append(this.testCaseId).append("\n")
-                .append(", avgUs: ").append(df.format(this.avgUs)).append("\n")
-                .append(", maxUs: ").append(df.format(maxUs)).append("\n")
-                .append(", minUs: ").append(df.format(this.minUs)).append("\n")
-                .append(", stdDev: ").append(df.format(stdDev)).append("\n")
-                .append(", latency90Us: ").append(df.format(this.latency90Us)).append("\n")
-                .append(", latency95Us: ").append(df.format(latency95Us)).append("\n")
-                .append(", latency99Us: ").append(df.format(latency99Us)).append("\n")
-                .append(", latency99_9Us: ").append(df.format(latency99_9Us)).append("\n")
-                .append(", longLactencyCount: ").append(this.longLactencyCount).append("\n")
+        return sb.append("testCaseId: ").append(this.testCaseId).append(", \n")
+                .append("avgUs: ").append(df.format(this.avgUs)).append(", \n")
+                .append("maxUs: ").append(df.format(maxUs)).append(", \n")
+                .append("minUs: ").append(df.format(this.minUs)).append("\n")
+                .append("stdDev: ").append(df.format(stdDev)).append(", \n")
+                .append("latency90Us: ").append(df.format(this.latency90Us)).append(", \n")
+                .append("latency95Us: ").append(df.format(latency95Us)).append(", \n")
+                .append("latency99Us: ").append(df.format(latency99Us)).append(", \n")
+                .append("latency99_9Us: ").append(df.format(latency99_9Us)).append(", \n")
+                .append("longLactencyCount: ").append(this.longLactencyCount).append("\n")
                 .toString();
+    }
+
+    public static void main(String[] args) {
+        TestStatistics s = new TestStatistics();
+        s.setTestCaseId(1220);
+        s.setAvgUs(10.002);
+        s.setMaxUs(23.998);
+        s.setMinUs(35.567);
+        s.setStdDev(10.89765);
+        s.setLatency90Us(9.123);
+        s.setLatency95Us(8.12345);
+        s.setLatency99Us(10.234);
+        s.setLatency99_9Us(20.897);
+        s.setLongLactencyCount(122);
+
+//        System.out.println(s);
+
+        for (String s1 : s.toStringArr()) {
+            System.out.println(s1);
+        }
     }
 
 

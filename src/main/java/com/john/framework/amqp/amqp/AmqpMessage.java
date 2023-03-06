@@ -8,6 +8,8 @@ public class AmqpMessage {
 
     private String routingKey;
 
+    private boolean endMark;
+
     private byte[] body;
 
     public int getTestCaseId() {
@@ -32,6 +34,14 @@ public class AmqpMessage {
 
     public void setRoutingKey(String routingKey) {
         this.routingKey = routingKey;
+    }
+
+    public boolean isEndMark() {
+        return endMark;
+    }
+
+    public void setEndMark(boolean endMark) {
+        this.endMark = endMark;
     }
 
     public byte[] getBody() {
