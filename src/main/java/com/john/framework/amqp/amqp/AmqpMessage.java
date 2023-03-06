@@ -1,14 +1,30 @@
 package com.john.framework.amqp.amqp;
 
-public class AmqpMessage {
+import com.kingstar.struct.StructClass;
+import com.kingstar.struct.StructField;
 
+import java.io.Serializable;
+
+@StructClass
+public class AmqpMessage implements Serializable {
+
+    private static final long serialVersionUID = 8356611117456552686L;
+
+    @StructField(order = 0)
     private int testCaseId;
 
+    @StructField(order = 2)
     private long timestampInNanos;
 
-    private String routingKey;
+    @StructField(order = 3)
+    public short endFlag;
 
+    @StructField(order = 4)
     private byte[] body;
+
+    public AmqpMessage(int packetSize) {
+        this.body = new byte[packetSize - 14];
+    }
 
     public int getTestCaseId() {
         return testCaseId;
@@ -24,14 +40,6 @@ public class AmqpMessage {
 
     public void setTimestampInNanos(long timestampInNanos) {
         this.timestampInNanos = timestampInNanos;
-    }
-
-    public String getRoutingKey() {
-        return routingKey;
-    }
-
-    public void setRoutingKey(String routingKey) {
-        this.routingKey = routingKey;
     }
 
     public byte[] getBody() {

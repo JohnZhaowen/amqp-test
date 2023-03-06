@@ -8,13 +8,14 @@ import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
 import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.StatisticsUtils;
+import com.kingstar.messaging.api.KSKingMQSPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerMsgListener implements IMsgListener {
+public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestCaseRunner.class);
 

@@ -115,7 +115,7 @@ public class TestCaseRunner implements CommandLineRunner {
         int totalSendMsgCount = msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
         RateLimiter rateLimiter = RateLimiter.create(msgSendRate);
 
-        AmqpMessage msg = new AmqpMessage();
+        AmqpMessage msg = new AmqpMessage(testCase.msgSize);
         msg.setTestCaseId(testCase.testCaseId);
         msg.setBody(MessageBodyGenerator.generate(testCase.msgSize));
 
@@ -123,11 +123,11 @@ public class TestCaseRunner implements CommandLineRunner {
         int sendedCount = 0;
 
         while (sendedCount < totalSendMsgCount) {
-            msg.setRoutingKey(RoutingKeyGenerator.generate());
+            //msg.setRoutingKey(RoutingKeyGenerator.generate());
             msg.setTimestampInNanos(System.nanoTime());
 
             rateLimiter.acquire();
-            pub.pub(msg, TestContents.EXCHAGE, testCase.durable);
+            pub.pub(msg, RoutingKeyGenerator.generate(), testCase.durable);
             sendedCount++;
         }
         LOG.info("end pub msgs...");
