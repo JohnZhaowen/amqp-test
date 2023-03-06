@@ -89,7 +89,6 @@ public class TestCaseRunner implements CommandLineRunner {
         executorService.execute(() -> doPub(testCase));*/
         //订阅
         boolean sub = pubSub.sub(BindingKeyGenerator.generate(),
-                TestContents.EXCHAGE,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,null);
         if(sub){
@@ -104,7 +103,6 @@ public class TestCaseRunner implements CommandLineRunner {
      */
     private void doSub(TestCaseEnum testCase) {
         pubSub.sub(BindingKeyGenerator.generate(),
-                TestContents.EXCHAGE,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,
                 //只选择节点5进行满消费测试

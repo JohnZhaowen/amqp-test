@@ -61,7 +61,7 @@ public class MyPubSub implements IPubSub{
     }
 
     @Override
-    public boolean sub(String bindingkey, String exch, String queue, boolean durable, IMsgListener listener) {
+    public boolean sub(String bindingkey, String queue, boolean durable, IMsgListener listener) {
         ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
         reqSubscribeField.setCnt(1);
         //创建订阅topic
