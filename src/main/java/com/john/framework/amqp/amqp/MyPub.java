@@ -61,7 +61,7 @@ public class MyPub implements IPubSub{
     }
 
     @Override
-    public boolean sub(String bindingkey, String exch, String queue, boolean durable, IMsgListener listener) {
+    public boolean sub(String bindingkey, String queue, boolean durable, IMsgListener listener) {
         return false;
     }
 

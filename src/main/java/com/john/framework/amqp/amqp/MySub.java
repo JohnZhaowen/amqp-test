@@ -20,7 +20,7 @@ public class MySub implements IPubSub{
     }
 
     @Override
-    public boolean sub(String bindingkey, String exch, String queue, boolean durable, IMsgListener listener) {
+    public boolean sub(String bindingkey, String queue, boolean durable, IMsgListener listener) {
         //创建 pub client
         KSKingMQ pubClient = KSKingMQ.CreateKingMQ("./config_sub.ini");
         KSKingMQSPI ksKingMQSPI = (KSKingMQSPI)listener;

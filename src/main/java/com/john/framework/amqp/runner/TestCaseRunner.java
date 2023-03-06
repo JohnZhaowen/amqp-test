@@ -61,14 +61,14 @@ public class TestCaseRunner implements CommandLineRunner {
         }
 
         switch (appType) {
-            case "pubsub":
-                doPubsub(testCase);
+            case "sub":
+                doSub(testCase);
                 break;
             case "pub":
                 doPub(testCase);
                 break;
-            case "sub":
-                doSub(testCase);
+            case "dummySub":
+                doDummySub(testCase);
                 break;
             default:
                 throw new IllegalArgumentException("appType: " + appType + " is not valid.");
@@ -77,13 +77,12 @@ public class TestCaseRunner implements CommandLineRunner {
 
     }
 
-    private void doPubsub(TestCaseEnum testCase) {
+    private void doSub(TestCaseEnum testCase) {
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         //TODO 执行sub，一定要绑定endMark，也就是至少要绑定两个key
         executorService.execute(() -> {
             sub.sub(BindingKeyGenerator.generate(),
-                    TestContents.EXCHAGE,
                     testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                     testCase.durable,
                     new StatisticsConsumerMsgListener(testCase)
@@ -99,9 +98,8 @@ public class TestCaseRunner implements CommandLineRunner {
      *
      * @param testCase
      */
-    private void doSub(TestCaseEnum testCase) {
+    private void doDummySub(TestCaseEnum testCase) {
         sub.sub(BindingKeyGenerator.generate(),
-                TestContents.EXCHAGE,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,
                 //只选择节点5进行满消费测试
