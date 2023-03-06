@@ -1,6 +1,6 @@
 package com.john.framework.amqp.amqp;
 
-import com.john.framework.amqp.collectors.TestCaseRunner;
+import com.john.framework.amqp.runner.TestCaseRunner;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.testcase.TestRawData;
@@ -28,7 +28,7 @@ public class StatisticsConsumerMsgListener implements IMsgListener {
     public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
-        //
+
         warmUpCount = testCaseEnum.msgSendRate * TestContents.WARNUP_TIME_IN_SECONDS;
 
         latencyInUs = new int[totalCount - warmUpCount];
@@ -41,6 +41,7 @@ public class StatisticsConsumerMsgListener implements IMsgListener {
             //所有消息已经接收完毕，则开始进行统计
             int[] recvLatencies = new int[recvCount];
             System.arraycopy(latencyInUs, 0, recvLatencies, 0, recvCount);
+            latencyInUs = null;
 
             //统计数据，一个测试用例生产一个统计数据
             TestStatistics statistics = StatisticsUtils.cal(recvLatencies, msg.getTestCaseId());

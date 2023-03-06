@@ -1,6 +1,7 @@
 package com.john.framework.amqp.utils;
 
 
+import com.john.framework.amqp.testcase.TestContents;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Random;
@@ -10,14 +11,12 @@ public class RoutingKeyGenerator {
     //    private static final String template = "pilot.default.JET.SZ.{instrument_class}.{source_system_id}.{instrument_subclass}.{exch}.{product_id}.{exch_product_id}";
     private static final String TEMPLATE = "pilot.default.JET.SZ.{}.{}.{}.{}.{}.{}";
 
-    private static final String[] EXCHANGES = {"ENDMARK", "SZEX", "SHEX", "CFETS"};
-
     public static String generateEndMsgRoutingKey() {
 
         String[] args = new String[6];
         for (int i = 0; i < 6; i++) {
             if (i == 3) {
-                args[i] = EXCHANGES[0];
+                args[i] = TestContents.EXCHANGES[0];
             } else {
                 args[i] = randomString();
             }
@@ -31,7 +30,7 @@ public class RoutingKeyGenerator {
         String[] args = new String[6];
         for (int i = 0; i < 6; i++) {
             if (i == 3) {
-                String exch = EXCHANGES[Math.abs(new Random().nextInt()) % 4];
+                String exch = TestContents.EXCHANGES[Math.abs(new Random().nextInt()) % 10];
                 args[i] = exch;
             } else {
                 args[i] = randomString();

@@ -1,4 +1,4 @@
-package com.john.framework.amqp.collectors;
+package com.john.framework.amqp.runner;
 
 import com.google.common.util.concurrent.RateLimiter;
 import com.john.framework.amqp.amqp.*;
@@ -44,7 +44,11 @@ public class TestCaseRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+
         int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
+
+        LOG.info("run env: uniqueId[{}], appType[{}], testCaseId[{}]", uniqueId, appType, testCaseId);
+
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
         runTestCases(testCaseEnum);
     }
