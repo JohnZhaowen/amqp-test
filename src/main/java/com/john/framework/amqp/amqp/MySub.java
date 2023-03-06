@@ -15,7 +15,7 @@ public class MySub implements IPubSub{
     private static final Logger logger = LoggerFactory.getLogger(MySub.class);
 
     @Override
-    public boolean pub(AmqpMessage msg, String exch, boolean persist) {
+    public boolean pub(AmqpMessage msg, String exch, int persist) {
         return false;
     }
 

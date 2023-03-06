@@ -7,6 +7,7 @@ import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
+import com.kingstar.messaging.api.KSKingMQ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,20 +121,18 @@ public class TestCaseRunner implements CommandLineRunner {
         msg.setBody(MessageBodyGenerator.generate(testCase.msgSize));
 
         LOG.info("start pub msgs.");
+        int durable = testCase.durable?1:0;
         int sendedCount = 0;
-
         while (sendedCount < totalSendMsgCount) {
             //msg.setRoutingKey(RoutingKeyGenerator.generate());
             msg.setTimestampInNanos(System.nanoTime());
-
             rateLimiter.acquire();
-            pub.pub(msg, RoutingKeyGenerator.generate(), testCase.durable);
+            pub.pub(msg, RoutingKeyGenerator.generate(), durable);
             sendedCount++;
         }
         //发送endMark消息
-        msg.setEndMark(false);
-        msg.setRoutingKey(RoutingKeyGenerator.generateEndMsgRoutingKey());
-        pub.pub(msg, TestContents.EXCHAGE, testCase.durable);
+        msg.setEndMark((short)1);
+        pub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
 
         LOG.info("end pub msgs...");
     }

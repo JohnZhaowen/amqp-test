@@ -17,7 +17,7 @@ public class AmqpMessage implements Serializable {
     private long timestampInNanos;
 
     @StructField(order = 3)
-    public short endFlag;
+    private short endMark;
 
     @StructField(order = 4)
     private byte[] body;
@@ -50,4 +50,11 @@ public class AmqpMessage implements Serializable {
         this.body = body;
     }
 
+    public short getEndMark() {
+        return endMark;
+    }
+
+    public void setEndMark(short endMark) {
+        this.endMark = endMark;
+    }
 }

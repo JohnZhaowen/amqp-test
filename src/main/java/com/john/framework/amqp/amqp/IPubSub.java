@@ -1,11 +1,13 @@
 package com.john.framework.amqp.amqp;
 
+import com.kingstar.messaging.api.KSKingMQ;
 import com.kingstar.messaging.api.ReqSubscribeField;
 
 public interface IPubSub {
 
     //往exch中发布msg消息，msg是否持久化参考persist
-    boolean pub(AmqpMessage msg, String exch, boolean persist);
+    //exchange 固定不需要传
+    boolean pub(AmqpMessage msg, String routingKey, int persist);
 
     //将queue与exch绑定，key是bindingKey，queue是否持久化参考durable，监听器未listener
     boolean sub(String bindingkey, String exch, String queue, boolean durable, IMsgListener listener);
