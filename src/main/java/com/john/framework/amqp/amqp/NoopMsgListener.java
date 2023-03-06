@@ -3,15 +3,16 @@ package com.john.framework.amqp.amqp;
 import com.kingstar.messaging.api.ErrorInfo;
 import com.kingstar.messaging.api.KSKingMQSPI;
 import com.kingstar.messaging.api.ReConnectStatus;
-import com.kingstar.struct.JavaStruct;
-import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NoopMsgListener extends KSKingMQSPI implements IMsgListener{
+
     private static final Logger logger = LoggerFactory.getLogger(SlowConsumerMsgListener.class);
 
     private volatile boolean connect = false;
+
+    private volatile boolean subscribe = false;
 
     private volatile int count = 0;
 
@@ -30,6 +31,9 @@ public class NoopMsgListener extends KSKingMQSPI implements IMsgListener{
     @Override
     public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
         logger.info("sub client Subscribed success ,queue name:"+pQueue);
+        if(pErrorInfo.getErrorId()==0){
+            subscribe = true;
+        }
     }
 
     @Override
@@ -55,5 +59,10 @@ public class NoopMsgListener extends KSKingMQSPI implements IMsgListener{
     @Override
     public boolean connect() {
         return connect;
+    }
+
+    @Override
+    public boolean subscribe() {
+        return subscribe;
     }
 }

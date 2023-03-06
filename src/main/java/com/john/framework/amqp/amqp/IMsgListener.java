@@ -7,4 +7,8 @@ public interface IMsgListener {
     default boolean connect(){
         return false;
     }
+
+    default boolean subscribe(){
+        return false;
+    }
 }

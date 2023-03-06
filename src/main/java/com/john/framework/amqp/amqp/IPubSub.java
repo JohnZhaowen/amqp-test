@@ -1,5 +1,7 @@
 package com.john.framework.amqp.amqp;
 
+import com.kingstar.messaging.api.ReqSubscribeField;
+
 public interface IPubSub {
 
     //往exch中发布msg消息，msg是否持久化参考persist

@@ -14,6 +14,8 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
 
     private volatile boolean connect = false;
 
+    private volatile boolean subscribe = false;
+
     private volatile int count = 0;
 
     @Override
@@ -31,6 +33,9 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
     @Override
     public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
         logger.info("sub client Subscribed success ,queue name:"+pQueue);
+        if(pErrorInfo.getErrorId()==0){
+            subscribe = true;
+        }
     }
 
     @Override
@@ -58,5 +63,10 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
     @Override
     public boolean connect() {
         return connect;
+    }
+
+    @Override
+    public boolean subscribe() {
+        return subscribe;
     }
 }

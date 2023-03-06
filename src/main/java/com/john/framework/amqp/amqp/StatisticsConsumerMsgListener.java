@@ -8,7 +8,11 @@ import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
 import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.StatisticsUtils;
+import com.kingstar.messaging.api.ErrorInfo;
 import com.kingstar.messaging.api.KSKingMQSPI;
+import com.kingstar.messaging.api.ReConnectStatus;
+import com.kingstar.struct.JavaStruct;
+import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +29,42 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     private int warnUpCount;
 
     private int[] latencyInUs;
+
+    private volatile boolean connect = false;
+
+    private volatile boolean subscribe = false;
+
+    @Override
+    public void OnConnected() {
+        LOG.info("sub client connected to broker!");
+        connect = true;
+    }
+
+    @Override
+    public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
+        LOG.warn("sub client disconnected to broker! error code:"+pErrorInfo.getErrorId()+
+                ",error msg:"+pErrorInfo.getErrorMessage());
+    }
+
+    @Override
+    public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
+        LOG.info("sub client Subscribed success ,queue name:"+pQueue);
+        if(pErrorInfo.getErrorId()==0){
+            subscribe = true;
+        }
+    }
+
+    @Override
+    public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
+        //什么都不做
+        try {
+            AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
+            JavaStruct.unpack(packet, pMsgbuf);
+            onMsg(packet);
+        } catch (StructException e) {
+            e.printStackTrace();
+        }
+    }
 
     public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
@@ -54,5 +94,15 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             int letencyUs = (int) ((recvNanos - sendNano) / 1000);
             latencyInUs[recvCount - 1] = letencyUs;
         }
+    }
+
+    @Override
+    public boolean connect() {
+        return connect;
+    }
+
+    @Override
+    public boolean subscribe() {
+        return subscribe;
     }
 }
