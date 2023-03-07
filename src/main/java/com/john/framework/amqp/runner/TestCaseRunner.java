@@ -67,26 +67,11 @@ public class TestCaseRunner implements CommandLineRunner {
                 break;
             default:
                 throw new IllegalArgumentException("appType: " + appType + " is not valid.");
-
         }
-
     }
 
     private void doPubsub(TestCaseEnum testCase) {
 
-        /*ExecutorService executorService = Executors.newFixedThreadPool(2);
-        //TODO 执行sub，一定要绑定endMark，也就是至少要绑定两个key
-        executorService.execute(() -> {
-            pubSub.sub(BindingKeyGenerator.generate(),
-                    TestContents.EXCHAGE,
-                    testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
-                    testCase.durable,
-                    new StatisticsConsumerMsgListener(testCase)
-            );
-        });
-
-        //执行pub
-        executorService.execute(() -> doPub(testCase));*/
         //订阅
         boolean sub = pubSub.sub(BindingKeyGenerator.generate(),
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,

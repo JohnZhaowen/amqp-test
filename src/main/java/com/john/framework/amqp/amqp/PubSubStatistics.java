@@ -23,7 +23,7 @@ public class PubSubStatistics implements IPubSub {
 
     private StatisticsConsumerMsgListener ksKingMQSPI;
 
-    public PubSubStatistics (TestCaseEnum testCaseEnum){
+    public PubSubStatistics(TestCaseEnum testCaseEnum) {
         ksKingMQSPI = new StatisticsConsumerMsgListener(testCaseEnum);
     }
 
@@ -77,14 +77,10 @@ public class PubSubStatistics implements IPubSub {
         //声明queue
         String[] bindingKeys = BindingKeyGenerator.generateAll();
         reqSubscribeField.setCnt(bindingKeys.length);
-        for(String bindingKey : bindingKeys){
+        for (String key : bindingKeys) {
             QueueType queueType = new QueueType();
-            if (durable) {
-                queueType.setDurable(1);
-            } else {
-                queueType.setDurable(0);
-            }
-            queueType.setBindingKey(bindingkey);
+            queueType.setDurable(durable ? 1 : 0);
+            queueType.setBindingKey(key);
             queueType.setOffset(0);
             queueType.setQueue(queue);
             reqSubscribeField.setElems(queueType);
@@ -97,7 +93,6 @@ public class PubSubStatistics implements IPubSub {
                     queue, Arrays.toString(bindingKeys), subResult.swigValue(), subResult.toString());
             return false;
         }
-
 
 
         while (true) {
