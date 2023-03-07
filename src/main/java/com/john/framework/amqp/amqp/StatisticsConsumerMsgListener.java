@@ -1,6 +1,5 @@
 package com.john.framework.amqp.amqp;
 
-import com.john.framework.amqp.runner.TestCaseRunner;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.testcase.TestRawData;
@@ -42,14 +41,14 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
     @Override
     public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
-        LOG.warn("OnDisconnected callback, sub client disconnected to broker! error code:"+pErrorInfo.getErrorId()+
-                ",error msg:"+pErrorInfo.getErrorMessage());
+        LOG.warn("OnDisconnected callback, sub client disconnected to broker! error code:" + pErrorInfo.getErrorId() +
+                ",error msg:" + pErrorInfo.getErrorMessage());
     }
 
     @Override
     public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
-        LOG.info("OnRtnSubscribe callback, sub client Subscribed success ,queue name:"+pQueue);
-        if(pErrorInfo.getErrorId()==0){
+        LOG.info("OnRtnSubscribe callback, sub client Subscribed success ,queue name:" + pQueue);
+        if (pErrorInfo.getErrorId() == 0) {
             subscribe = true;
         }
     }
@@ -66,7 +65,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
         }
     }
 
-    /*public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
+    public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
 
@@ -74,11 +73,16 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
         latencyInUs = new int[totalCount - warmUpCount];
         LOG.info("listener build for testCase: [{}], should send [{}] msgs.", testCaseEnum.testCaseId, totalCount);
-    }*/
+    }
 
     public void onMsg(AmqpMessage msg) {
 
-        if (msg.getEndMark()==1) {
+
+
+        if (msg.getEndMark() == 1) {
+
+            LOG.info("recv finished, total recv count:[{}], send count:[{}]", recvCount, totalCount);
+
             //所有消息已经接收完毕，则开始进行统计
             int[] recvLatencies = new int[recvCount];
             System.arraycopy(latencyInUs, 0, recvLatencies, 0, recvCount);
@@ -98,8 +102,12 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             long recvNanos = System.nanoTime();
             long sendNano = msg.getTimestampInNanos();
 
-            int letencyUs = (int) ((recvNanos - sendNano) / 1000);
-            latencyInUs[recvCount - 1] = letencyUs;
+            int latencyUs = (int) ((recvNanos - sendNano) / 1000);
+            latencyInUs[recvCount - 1] = latencyUs;
+
+            if(recvCount % 1000 == 0){
+                LOG.info("current latency: [{}]us, current finish: [{}/{}]", latencyUs, recvCount, totalCount);
+            }
         }
     }
 

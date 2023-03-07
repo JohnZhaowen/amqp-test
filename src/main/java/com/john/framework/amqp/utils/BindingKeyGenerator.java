@@ -18,6 +18,17 @@ public class BindingKeyGenerator {
         return MessageFormatter.arrayFormat(BINDING_KEY, arsg).getMessage();
     }
 
+    public static String[] generateAll() {
+        String[] res = new String[10];
+        for (int i = 0; i < 10; i++) {
+            String exchange = TestContents.EXCHANGES[i];
+            String[] arsg = new String[1];
+            arsg[0] = exchange;
+            res[i] = MessageFormatter.arrayFormat(BINDING_KEY, arsg).getMessage();
+        }
+        return res;
+    }
+
     public static String generateEndMark() {
 
         String[] arsg = new String[1];

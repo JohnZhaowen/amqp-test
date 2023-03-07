@@ -6,6 +6,7 @@ package com.john.framework.amqp.testcase;
  */
 public interface TestContents {
 
+    //交易所的遍历
     String[] EXCHANGES = {"ENDMARK", "SZEX", "SHEX", "CFETS", "gold", "bond", "xbond", "fx", "option", "dimple"};
 
     String EXCHAGE = "FAST";

@@ -1,16 +1,12 @@
 package com.john.framework.amqp.amqp;
 
-import com.kingstar.messaging.api.APIResult;
-import com.kingstar.messaging.api.KSKingMQ;
-import com.kingstar.messaging.api.KSKingMQSPI;
-import com.kingstar.messaging.api.QueueType;
-import com.kingstar.messaging.api.ReqSubscribeField;
+import com.kingstar.messaging.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MySub implements IPubSub{
+public class SimpleSub implements IPubSub {
 
-    private static final Logger logger = LoggerFactory.getLogger(MySub.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleSub.class);
 
     @Override
     public boolean pub(AmqpMessage msg, String exch, int persist) {
@@ -19,12 +15,13 @@ public class MySub implements IPubSub{
 
     private KSKingMQ ksKingMQ;
 
-    private volatile boolean  init = false;
+    private volatile boolean init = false;
 
-    public void init(){
-        if(init){
+    @Override
+    public void init() {
+        if (init) {
             logger.info("KSKingMQ is init");
-            return ;
+            return;
         }
         init = true;
         //创建 KSMQ client实例
@@ -34,25 +31,25 @@ public class MySub implements IPubSub{
 
     @Override
     public boolean sub(String bindingkey, String queue, boolean durable, IMsgListener listener) {
-        KSKingMQSPI ksKingMQSPI = (KSKingMQSPI)listener;
+        KSKingMQSPI ksKingMQSPI = (KSKingMQSPI) listener;
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
-        if(apiResult.swigValue() != APIResult.SUCCESS.swigValue()){
-            logger.error("connect server failed! error code:{},,error msg:{}",apiResult.swigValue(),
+        if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
+            logger.error("connect server failed! error code:{},,error msg:{}", apiResult.swigValue(),
                     apiResult.toString());
             return false;
         }
-        while (true){
-            if(listener.connect()){
+        while (true) {
+            if (listener.connect()) {
                 //pub client 订阅回复消息
                 ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
                 reqSubscribeField.setCnt(1);
                 //创建订阅topic
                 //声明queue
                 QueueType queueType = new QueueType();
-                if(durable){
+                if (durable) {
                     queueType.setDurable(1);
-                }else{
+                } else {
                     queueType.setDurable(0);
                 }
                 queueType.setBindingKey(bindingkey);
@@ -60,26 +57,26 @@ public class MySub implements IPubSub{
                 queueType.setQueue(queue);
                 reqSubscribeField.setElems(queueType);
                 APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
-                if(subResult.swigValue() != APIResult.SUCCESS.swigValue()){
+                if (subResult.swigValue() != APIResult.SUCCESS.swigValue()) {
                     logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",
-                            queueType.getQueue(),queueType.getBindingKey(),subResult.swigValue(),subResult.toString());
+                            queueType.getQueue(), queueType.getBindingKey(), subResult.swigValue(), subResult.toString());
                     return false;
                 }
                 boolean subscribe = false;
-                while (true){
-                    if(listener.subscribe()){
+                while (true) {
+                    if (listener.subscribe()) {
                         subscribe = true;
                         break;
                     }
                     try {
                         logger.info("req Subscribing! Subscribe queue name:{},bindKey:{}",
-                                queueType.getQueue(),queueType.getBindingKey());
+                                queueType.getQueue(), queueType.getBindingKey());
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-                if(subscribe){
+                if (subscribe) {
                     break;
                 }
             }
@@ -93,8 +90,4 @@ public class MySub implements IPubSub{
         return true;
     }
 
-    @Override
-    public boolean unsub(String bindingkey, String exch, String queue) {
-        return false;
-    }
 }
