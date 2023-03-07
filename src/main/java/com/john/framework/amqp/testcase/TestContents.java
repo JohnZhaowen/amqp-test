@@ -13,8 +13,8 @@ public interface TestContents {
     String NONDURABLE_QUEUE_PREFIX = "fast-shared-durable-";
     String DURABLE_QUEUE_PREFIX = "fast-shared-nondurable-";
 
-    String LATENCY_STATISTICS_FILENAME = "latenct_statistics.csv";
-    String LATENCY_RAW_FILENAME = "latenct_raw.csv";
+    String LATENCY_STATISTICS_FILENAME = "latency_statistics.csv";
+    String LATENCY_RAW_FILENAME = "latency_raw.csv";
     int  LATENCY_RAW_BATCHES = 3000;
 
     //msg size: bytes
