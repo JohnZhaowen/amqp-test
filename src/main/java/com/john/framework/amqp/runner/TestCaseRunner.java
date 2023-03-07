@@ -104,7 +104,7 @@ public class TestCaseRunner implements CommandLineRunner {
 
         AmqpMessage msg = new AmqpMessage(testCase.msgSize);
         msg.setTestCaseId(testCase.testCaseId);
-        msg.setBody(MessageBodyGenerator.generate(testCase.msgSize));
+        msg.setBody(MessageBodyGenerator.generate(msg.getBody().length));
 
         LOG.info("start pub msgs.");
         int durable = testCase.durable?1:0;

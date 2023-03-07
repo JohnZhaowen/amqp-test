@@ -84,9 +84,7 @@ public class PubSubStatistics implements IPubSub {
             queueType.setOffset(0);
             queueType.setQueue(queue);
             reqSubscribeField.setElems(queueType);
-
         }
-
         APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
         if (subResult.swigValue() != APIResult.SUCCESS.swigValue()) {
             logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",

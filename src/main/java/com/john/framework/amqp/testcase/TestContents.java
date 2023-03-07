@@ -10,8 +10,11 @@ public interface TestContents {
     String[] EXCHANGES = {"ENDMARK", "SZEX", "SHEX", "CFETS", "gold", "bond", "xbond", "fx", "option", "dimple"};
 
     String EXCHAGE = "FAST";
-    String NONDURABLE_QUEUE_PREFIX = "fast-shared-durable-";
-    String DURABLE_QUEUE_PREFIX = "fast-shared-nondurable-";
+    //String NONDURABLE_QUEUE_PREFIX = "fast-shared-durable-";
+    //String DURABLE_QUEUE_PREFIX = "fast-shared-nondurable-";
+
+    String NONDURABLE_QUEUE_PREFIX = "90000";
+    String DURABLE_QUEUE_PREFIX = "10000";
 
     String LATENCY_STATISTICS_FILENAME = "latenct_statistics.csv";
     String LATENCY_RAW_FILENAME = "latenct_raw.csv";

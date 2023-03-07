@@ -76,13 +76,8 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     }
 
     public void onMsg(AmqpMessage msg) {
-
-
-
         if (msg.getEndMark() == 1) {
-
             LOG.info("recv finished, total recv count:[{}], send count:[{}]", recvCount, totalCount);
-
             //所有消息已经接收完毕，则开始进行统计
             int[] recvLatencies = new int[recvCount];
             System.arraycopy(latencyInUs, 0, recvLatencies, 0, recvCount);
