@@ -214,8 +214,8 @@ public class TestCaseRunner implements CommandLineRunner {
             }
         }
         //发送endMark消息
-        msg.setEndMark((short) 1);
-        pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
+        //msg.setEndMark((short) 1);
+        //pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
         long tv_end = System.nanoTime();
         //计算总耗时 us
         long usec = (tv_end - tv_start) / 1000;
