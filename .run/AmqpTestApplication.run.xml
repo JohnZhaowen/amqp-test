@@ -6,6 +6,7 @@
     <option name="MAIN_CLASS_NAME" value="com.john.framework.amqp.AmqpTestApplication" />
     <module name="amqp-test" />
     <option name="PROGRAM_PARAMETERS" value="--spring.profiles.active=pubsub1" />
+    <option name="VM_PARAMETERS" value="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./dump.hprof -Xms2g -Xmx2g" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.john.framework.amqp.*" />

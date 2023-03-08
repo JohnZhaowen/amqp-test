@@ -70,39 +70,38 @@ public class PubSubStatistics implements IPubSub {
     }
 
     @Override
-    public boolean sub(String bindingkey, String queue, boolean durable, IMsgListener listener) {
+    public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
         ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
-
-        //创建订阅topic
         //声明queue
-        String[] bindingKeys = BindingKeyGenerator.generateAll();
-        reqSubscribeField.setCnt(bindingKeys.length);
-        for (String key : bindingKeys) {
+        for (int i=0;i<bindingKeys.length;i++) {
+            reqSubscribeField.setCnt(1);
             QueueType queueType = new QueueType();
             queueType.setDurable(durable ? 1 : 0);
-            queueType.setBindingKey(key);
+            queueType.setBindingKey(bindingKeys[i]);
             queueType.setOffset(0);
             queueType.setQueue(queue);
             reqSubscribeField.setElems(queueType);
-        }
-        APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
-        if (subResult.swigValue() != APIResult.SUCCESS.swigValue()) {
-            logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",
-                    queue, Arrays.toString(bindingKeys), subResult.swigValue(), subResult.toString());
-            return false;
-        }
-
-
-        while (true) {
-            if (ksKingMQSPI.subscribe()) {
-                break;
+            APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
+            if (subResult.swigValue() != APIResult.SUCCESS.swigValue()) {
+                logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",
+                        queue, bindingKeys[i], subResult.swigValue(), subResult.toString());
+                return false;
             }
-            try {
-                logger.info("req Subscribing! wait a moment! Subscribe queue name:{},bindKey:{}",
-                        queue, Arrays.toString(bindingKeys));
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            while (true) {
+                if (ksKingMQSPI.subscribe()) {
+                    if(i!=9){
+                        //重置
+                        ksKingMQSPI.setSubscribe(false);
+                    }
+                    break;
+                }
+                try {
+                    logger.info("req Subscribing! wait a moment! Subscribe queue name:{},bindKey:{}",
+                            queue, bindingKeys[i]);
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return true;

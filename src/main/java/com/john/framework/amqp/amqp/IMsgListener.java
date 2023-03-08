@@ -11,4 +11,7 @@ public interface IMsgListener {
     default boolean subscribe(){
         return false;
     }
+
+    default void setSubscribe(boolean subscribe){
+    }
 }

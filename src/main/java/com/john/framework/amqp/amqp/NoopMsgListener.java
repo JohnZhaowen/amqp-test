@@ -38,9 +38,9 @@ public class NoopMsgListener extends KSKingMQSPI implements IMsgListener{
 
     @Override
     public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
-        count++;
-        //什么都不做
-        onMsg(null);
+        if(count++%1000==0) {
+            System.out.println(String.format("current receive total: %d", count));
+        }
     }
 
     public boolean isConnect() {

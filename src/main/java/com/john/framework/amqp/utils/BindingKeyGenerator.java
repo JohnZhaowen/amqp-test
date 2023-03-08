@@ -4,6 +4,7 @@ package com.john.framework.amqp.utils;
 import com.john.framework.amqp.testcase.TestContents;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.Arrays;
 import java.util.Random;
 
 public class BindingKeyGenerator {
@@ -37,7 +38,14 @@ public class BindingKeyGenerator {
     }
 
     public static void main(String[] args) {
-        System.out.println(generate());
+        for(int i=0;i<1000000000;i++){
+            String[] arr = generate().split("\\.");
+            if(arr.length!=10){
+                System.out.println(Arrays.toString(arr));
+                break;
+            }
+        }
+        ;
     }
 
 

@@ -1,5 +1,6 @@
 package com.john.framework.amqp.amqp;
 
+import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.kingstar.messaging.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class SimpleSub implements IPubSub {
     }
 
     @Override
-    public boolean sub(String bindingkey, String queue, boolean durable, IMsgListener listener) {
+    public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
         KSKingMQSPI ksKingMQSPI = (KSKingMQSPI) listener;
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
@@ -41,44 +42,41 @@ public class SimpleSub implements IPubSub {
         }
         while (true) {
             if (listener.connect()) {
-                //pub client 订阅回复消息
                 ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
-                reqSubscribeField.setCnt(1);
                 //创建订阅topic
                 //声明queue
-                QueueType queueType = new QueueType();
-                if (durable) {
-                    queueType.setDurable(1);
-                } else {
-                    queueType.setDurable(0);
-                }
-                queueType.setBindingKey(bindingkey);
-                queueType.setOffset(0);
-                queueType.setQueue(queue);
-                reqSubscribeField.setElems(queueType);
-                APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
-                if (subResult.swigValue() != APIResult.SUCCESS.swigValue()) {
-                    logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",
-                            queueType.getQueue(), queueType.getBindingKey(), subResult.swigValue(), subResult.toString());
-                    return false;
-                }
-                boolean subscribe = false;
-                while (true) {
-                    if (listener.subscribe()) {
-                        subscribe = true;
-                        break;
+                for (int i=0;i<bindingKeys.length;i++) {
+                    reqSubscribeField.setCnt(1);
+                    QueueType queueType = new QueueType();
+                    queueType.setDurable(durable ? 1 : 0);
+                    queueType.setBindingKey(bindingKeys[i]);
+                    queueType.setOffset(0);
+                    queueType.setQueue(queue);
+                    reqSubscribeField.setElems(queueType);
+                    APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
+                    if (subResult.swigValue() != APIResult.SUCCESS.swigValue()) {
+                        logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",
+                                queue, bindingKeys[i], subResult.swigValue(), subResult.toString());
+                        return false;
                     }
-                    try {
-                        logger.info("req Subscribing! Subscribe queue name:{},bindKey:{}",
-                                queueType.getQueue(), queueType.getBindingKey());
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    while (true) {
+                        if (listener.subscribe()) {
+                            if(i!=9){
+                                //重置
+                                listener.setSubscribe(false);
+                            }
+                            break;
+                        }
+                        try {
+                            logger.info("req Subscribing! wait a moment! Subscribe queue name:{},bindKey:{}",
+                                    queue, bindingKeys[i]);
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-                if (subscribe) {
-                    break;
-                }
+                break;
             }
             try {
                 logger.info("connecting server! wait a moment!");

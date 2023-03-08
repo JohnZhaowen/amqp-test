@@ -18,20 +18,71 @@ import org.slf4j.LoggerFactory;
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener {
+public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener{
 
     private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerMsgListener.class);
 
     private int totalCount;
 
-    private int recvCount = 0;
+    private volatile int recvCount = 0;
+
     private int warmUpCount;
 
-    private int[] latencyInUs;
+    private volatile int[] latencyInUs;
 
     private volatile boolean connect = false;
 
     private volatile boolean subscribe = false;
+
+    //初始化标识
+    private volatile boolean init = false;
+
+    volatile int stop_flag = 0;
+
+    //延迟打印时间线程
+    private Thread latencyThread=null;
+
+
+    private void init(String threadName){
+        if(init){
+            LOG.info("init LatencyDaemonThread repeat...");
+            return ;
+        }
+        this.startLatencyDaemonThread(threadName);
+        init = true;
+        LOG.info("LatencyDaemonThread init end...");
+    }
+
+    private void startLatencyDaemonThread(String threadName){
+        if(init){
+            return ;
+        }
+        try {
+            this.latencyThread = new Thread(){
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1000);
+                    }catch (Exception e){
+                        LOG.error("", e);
+                    }
+                    while (stop_flag == 0){
+                        LOG.info("current latency: [{}]us, current finish: [{}/{}]", latencyInUs[recvCount], recvCount, totalCount);
+                        try {
+                            Thread.sleep(1000);
+                        }catch (Exception e){
+                            LOG.error("", e);
+                        }
+                    }
+                }
+            };
+            this.latencyThread.setName(threadName);
+            this.latencyThread.setDaemon(true);
+            this.latencyThread.start();
+        }catch (Exception e){
+            LOG.error("", e);
+        }
+    }
 
     @Override
     public void OnConnected() {
@@ -61,58 +112,52 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             JavaStruct.unpack(packet, pMsgbuf);
             onMsg(packet);
         } catch (StructException e) {
-            e.printStackTrace();
+            LOG.error("回调消息处理异常",e);
         }
     }
 
     public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
+        init("LatencyDaemonThread");
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
-
         warmUpCount = testCaseEnum.msgSendRate * TestContents.WARNUP_TIME_IN_SECONDS;
-
-        latencyInUs = new int[totalCount - warmUpCount];
-        LOG.info("listener build for testCase: [{}], should send [{}] msgs.", testCaseEnum.testCaseId, totalCount);
+        latencyInUs = new int[totalCount];
+        LOG.info("listener build for testCase: [{}], should send [{}] packets.",
+                testCaseEnum.testCaseId, totalCount);
     }
 
     public void onMsg(AmqpMessage msg) {
         if (msg.getEndMark() == 1) {
-            LOG.info("recv finished, total recv count:[{}], send count:[{}]", recvCount, totalCount);
+            stop_flag = 1;
+            LOG.info("receive finished, receive total:[{}], send count:[{}]", recvCount, totalCount);
             //所有消息已经接收完毕，则开始进行统计
-            int[] recvLatencies = new int[recvCount];
-            System.arraycopy(latencyInUs, 0, recvLatencies, 0, recvCount);
+            int[] recvLatencies = new int[recvCount-warmUpCount];
+            System.arraycopy(latencyInUs, warmUpCount, recvLatencies, 0, recvLatencies.length);
             latencyInUs = null;
-
             //统计数据，一个测试用例生产一个统计数据
             TestStatistics statistics = StatisticsUtils.cal(recvLatencies, msg.getTestCaseId());
             CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_STATISTICS_FILENAME, statistics.toStringArr());
-
             int[] rawLatencies = MathUils.split(recvLatencies, TestContents.LATENCY_RAW_BATCHES);
             for (int rawLatency : rawLatencies) {
                 CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_RAW_FILENAME, new TestRawData(msg.getTestCaseId(), rawLatency).toStringArr());
             }
-
             LOG.info("testCase [{}] run finished, result: [{}]", msg.getTestCaseId(), statistics);
-        } else if ((++recvCount) > warmUpCount) {
-            long recvNanos = System.nanoTime();
-            long sendNano = msg.getTimestampInNanos();
-
-            int latencyUs = (int) ((recvNanos - sendNano) / 1000);
-            latencyInUs[recvCount - 1] = latencyUs;
-
-            if(recvCount % 1000 == 0){
-                LOG.info("current latency: [{}]us, current finish: [{}/{}]", latencyUs, recvCount, totalCount);
-            }
+        }else{
+            long end = System.nanoTime();
+            long start = msg.getTimestampInNanos();
+            latencyInUs[recvCount++] = (int)((end - start) / 1000);
         }
     }
 
-    @Override
     public boolean connect() {
         return connect;
     }
 
-    @Override
     public boolean subscribe() {
         return subscribe;
+    }
+
+    public void setSubscribe(boolean subscribe) {
+        this.subscribe = subscribe;
     }
 }

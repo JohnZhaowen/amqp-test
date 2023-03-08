@@ -8,6 +8,7 @@ import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
 import com.kingstar.messaging.api.KSKingMQ;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,12 +72,12 @@ public class TestCaseRunner implements CommandLineRunner {
     }
 
     private void doPubsub(TestCaseEnum testCase) {
-
-        //订阅
-        boolean sub = pubSub.sub(BindingKeyGenerator.generate(),
+        //全部订阅
+        String[] bindingKeys = BindingKeyGenerator.generateAll();
+        boolean sub = pubSub.sub(bindingKeys,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
-                testCase.durable,null);
-        if(sub){
+                testCase.durable, null);
+        if (sub) {
             doPub(testCase);
         }
     }
@@ -87,7 +88,12 @@ public class TestCaseRunner implements CommandLineRunner {
      * @param testCase
      */
     private void doSub(TestCaseEnum testCase) {
-        pubSub.sub(BindingKeyGenerator.generate(),
+        //只订阅2种 一种是根testCase选择
+        String[] bindingKeys = new String[2];
+        bindingKeys[0] = BindingKeyGenerator.generateEndMark();
+        bindingKeys[01] =  BindingKeyGenerator.generate();
+
+        pubSub.sub(bindingKeys,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,
                 //只选择节点5进行满消费测试
@@ -106,18 +112,19 @@ public class TestCaseRunner implements CommandLineRunner {
         msg.setTestCaseId(testCase.testCaseId);
         msg.setBody(MessageBodyGenerator.generate(msg.getBody().length));
 
-        LOG.info("start pub msgs.");
-        int durable = testCase.durable?1:0;
+        LOG.info("start pub packet.");
+        int durable = testCase.durable ? 1 : 0;
         int sendedCount = 0;
         while (sendedCount < totalSendMsgCount) {
-            //msg.setRoutingKey(RoutingKeyGenerator.generate());
-            msg.setTimestampInNanos(System.nanoTime());
+            String routingKey = RoutingKeyGenerator.generate();
             rateLimiter.acquire();
-            pubSub.pub(msg, RoutingKeyGenerator.generate(), durable);
+            msg.setTimestampInNanos(System.nanoTime());
+            pubSub.pub(msg,routingKey, durable);
             sendedCount++;
         }
         //发送endMark消息
-        msg.setEndMark((short)1);
+        msg.setTimestampInNanos(System.nanoTime());
+        msg.setEndMark((short) 1);
         pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
 
         LOG.info("end pub msgs...");

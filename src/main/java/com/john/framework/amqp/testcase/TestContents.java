@@ -16,8 +16,8 @@ public interface TestContents {
     String NONDURABLE_QUEUE_PREFIX = "90000";
     String DURABLE_QUEUE_PREFIX = "10000";
 
-    String LATENCY_STATISTICS_FILENAME = "latency_statistics.csv";
-    String LATENCY_RAW_FILENAME = "latency_raw.csv";
+    String LATENCY_STATISTICS_FILENAME = "./latency_statistics.csv";
+    String LATENCY_RAW_FILENAME = "./latency_raw.csv";
     int  LATENCY_RAW_BATCHES = 3000;
 
     //msg size: bytes
@@ -33,7 +33,7 @@ public interface TestContents {
     int MSG_SEND_RATE_OF_10W = 100000;
 
     //test time, warn up time: s
-    int TEST_TIME_IN_SECONDS = 5 * 60;
+    int TEST_TIME_IN_SECONDS = 60;
     int WARNUP_TIME_IN_SECONDS = 30;
 
     //durable: boolean

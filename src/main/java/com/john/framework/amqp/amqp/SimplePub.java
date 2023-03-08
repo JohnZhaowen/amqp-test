@@ -59,7 +59,7 @@ public class SimplePub implements IPubSub {
     }
 
     @Override
-    public boolean sub(String bindingkey, String queue, boolean durable, IMsgListener listener) {
+    public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
         return false;
     }
 

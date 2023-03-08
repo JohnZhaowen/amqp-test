@@ -32,6 +32,9 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub7 --testCaseId=2 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub8 --testCaseId=2 &
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=2 &
 
+java -Xms16g -Xmx16g -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xloggc:./gc.log -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=2  -Djava.library.path=./
+
+
 
 3.3 testCase 3:
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=3 &
@@ -60,7 +63,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=4 &
 
 
 3.5 testCase 5:
-java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=5 &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=5 -Djava.library.path=./ &
 
 3.6 testCase 6:
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=6 &
@@ -91,11 +94,12 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=8 &
 
 
 3.9 testCase 9:
-java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=9 &
+java -Xms16g -Xmx16g -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xloggc:./gc.log -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=9  -Djava.library.path=./  >> amqp.txt
 
 
 3.10 testCase 10:
-java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=10 &
+java -Xms16g -Xmx16g -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xloggc:./gc.log -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=10  -Djava.library.path=./
+
 
 
 3.11 testCase 11:
@@ -103,7 +107,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=11 &
 
 
 3.12 testCase 12:
-java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=12 &
+java -Xms16g -Xmx16g -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Xloggc:./gc.log -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=12  -Djava.library.path=./
 
 
 3.13 testCase 13:

@@ -57,4 +57,13 @@ public class AmqpMessage implements Serializable {
     public void setEndMark(short endMark) {
         this.endMark = endMark;
     }
+
+    @Override
+    public String toString() {
+        return "AmqpMessage{" +
+                "testCaseId=" + testCaseId +
+                ", timestampInNanos=" + timestampInNanos +
+                ", endMark=" + endMark +
+                '}';
+    }
 }
