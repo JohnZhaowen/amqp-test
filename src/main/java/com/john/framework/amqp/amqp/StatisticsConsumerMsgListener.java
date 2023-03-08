@@ -15,8 +15,6 @@ import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-
 /**
  * 该监听器用于统计延时信息
  */
@@ -129,11 +127,13 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
     @Override
     public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
-        //什么都不做
         try {
+            long end = System.nanoTime();
             AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
             JavaStruct.unpack(packet, pMsgbuf);
-            onMsg(packet);
+            long start = packet.getTimestampInNanos();
+            latencyInUs[recvCount++] = (int)((end - start) / 1000);
+            if (recvCount== latencyInUs.length-1 ) stop_flag = 1;
         } catch (StructException e) {
             LOG.error("回调消息处理异常",e);
         }
@@ -151,27 +151,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     }
 
     public void onMsg(AmqpMessage msg) {
-        if (msg.getEndMark() == 1) {
-            /*stop_flag = 1;
-            LOG.info("receive finished, receive total:[{}], send count:[{}]", recvCount, totalCount);
-            //所有消息已经接收完毕，则开始进行统计
-            int[] recvLatencies = new int[recvCount-warmUpCount];
-            System.arraycopy(latencyInUs, warmUpCount, recvLatencies, 0, recvLatencies.length);
-            latencyInUs = null;
-            //统计数据，一个测试用例生产一个统计数据
-            TestStatistics statistics = StatisticsUtils.cal(recvLatencies, msg.getTestCaseId());
-            CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_STATISTICS_FILENAME, statistics.toStringArr());
-            int[] rawLatencies = MathUils.split(recvLatencies, TestContents.LATENCY_RAW_BATCHES);
-            for (int rawLatency : rawLatencies) {
-                CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_RAW_FILENAME, new TestRawData(msg.getTestCaseId(), rawLatency).toStringArr());
-            }
-            LOG.info("testCase [{}] run finished, result: [{}]", msg.getTestCaseId(), statistics);*/
-        }else{
-            long end = System.nanoTime();
-            long start = msg.getTimestampInNanos();
-            latencyInUs[recvCount++] = (int)((end - start) / 1000);
-            if (recvCount== latencyInUs.length-1 ) stop_flag = 1;
-        }
+
     }
 
     public boolean connect() {
