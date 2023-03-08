@@ -41,14 +41,14 @@ public enum TestCaseEnum {
     EXCELRANGE_TEST_5(
             5,
             TestContents.MSG_SIZE_OF_2M,
-            TestContents.MSG_SEND_RATE_OF_5K,
+            TestContents.MSG_SEND_RATE_OF_2K,
             TestContents.PUB_1_SUB_1,
             TestContents.MSG_NON_DURABLE,
             TestContents.NON_SLOW_CONSUMER),
     EXCELRANGE_TEST_6(
             6,
             TestContents.MSG_SIZE_OF_2M,
-            TestContents.MSG_SEND_RATE_OF_3W,
+            TestContents.MSG_SEND_RATE_OF_5K,
             TestContents.PUB_1_SUB_1,
             TestContents.MSG_NON_DURABLE,
             TestContents.NON_SLOW_CONSUMER),

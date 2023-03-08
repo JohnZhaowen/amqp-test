@@ -15,6 +15,8 @@ import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * 该监听器用于统计延时信息
  */
@@ -38,6 +40,8 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     private volatile boolean init = false;
 
     volatile int stop_flag = 0;
+
+    private TestCaseEnum testCaseEnum = null;
 
     //延迟打印时间线程
     private Thread latencyThread=null;
@@ -67,12 +71,31 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                         LOG.error("", e);
                     }
                     while (stop_flag == 0){
-                        LOG.info("current latency: [{}]us, current finish: [{}/{}]", latencyInUs[recvCount], recvCount, totalCount);
+                        LOG.info("current finish: [{}/{}]", recvCount, totalCount);
                         try {
                             Thread.sleep(1000);
                         }catch (Exception e){
                             LOG.error("", e);
                         }
+                    }
+                    //计算时延
+                    try {
+                        LOG.info("receive finished, receive total:[{}], send count:[{}],start Statistics", recvCount, totalCount);
+                        //所有消息已经接收完毕，则开始进行统计
+                        int[] recvLatencies = new int[recvCount-warmUpCount];
+                        System.arraycopy(latencyInUs, warmUpCount, recvLatencies, 0, recvLatencies.length);
+                        latencyInUs = null;
+                        //统计数据，一个测试用例生产一个统计数据
+                        TestStatistics statistics = StatisticsUtils.cal(recvLatencies, testCaseEnum.testCaseId);
+                        CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_STATISTICS_FILENAME, statistics.toStringArr());
+                        int[] rawLatencies = MathUils.split(recvLatencies, TestContents.LATENCY_RAW_BATCHES);
+                        for (int rawLatency : rawLatencies) {
+                            CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_RAW_FILENAME,
+                                    new TestRawData(testCaseEnum.testCaseId, rawLatency).toStringArr());
+                        }
+                        LOG.info("testCase [{}] run finished, result: [{}]", testCaseEnum.testCaseId, statistics);
+                    }catch (Exception e){
+                        LOG.error("Statistics exception", e);
                     }
                 }
             };
@@ -117,6 +140,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     }
 
     public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
+        this.testCaseEnum = testCaseEnum;
         init("LatencyDaemonThread");
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
@@ -128,7 +152,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
     public void onMsg(AmqpMessage msg) {
         if (msg.getEndMark() == 1) {
-            stop_flag = 1;
+            /*stop_flag = 1;
             LOG.info("receive finished, receive total:[{}], send count:[{}]", recvCount, totalCount);
             //所有消息已经接收完毕，则开始进行统计
             int[] recvLatencies = new int[recvCount-warmUpCount];
@@ -141,11 +165,12 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             for (int rawLatency : rawLatencies) {
                 CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_RAW_FILENAME, new TestRawData(msg.getTestCaseId(), rawLatency).toStringArr());
             }
-            LOG.info("testCase [{}] run finished, result: [{}]", msg.getTestCaseId(), statistics);
+            LOG.info("testCase [{}] run finished, result: [{}]", msg.getTestCaseId(), statistics);*/
         }else{
             long end = System.nanoTime();
             long start = msg.getTimestampInNanos();
             latencyInUs[recvCount++] = (int)((end - start) / 1000);
+            if (recvCount== latencyInUs.length-1 ) stop_flag = 1;
         }
     }
 

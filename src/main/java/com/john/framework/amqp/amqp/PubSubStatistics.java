@@ -1,7 +1,6 @@
 package com.john.framework.amqp.amqp;
 
 import com.john.framework.amqp.testcase.TestCaseEnum;
-import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
 import com.kingstar.messaging.api.QueueType;
@@ -10,8 +9,6 @@ import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 public class PubSubStatistics implements IPubSub {
 

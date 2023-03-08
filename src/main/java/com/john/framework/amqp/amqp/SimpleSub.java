@@ -1,7 +1,10 @@
 package com.john.framework.amqp.amqp;
 
-import com.john.framework.amqp.utils.BindingKeyGenerator;
-import com.kingstar.messaging.api.*;
+import com.kingstar.messaging.api.APIResult;
+import com.kingstar.messaging.api.KSKingMQ;
+import com.kingstar.messaging.api.KSKingMQSPI;
+import com.kingstar.messaging.api.QueueType;
+import com.kingstar.messaging.api.ReqSubscribeField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +30,6 @@ public class SimpleSub implements IPubSub {
         init = true;
         //创建 KSMQ client实例
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_sub.ini");
-
     }
 
     @Override

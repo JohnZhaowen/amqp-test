@@ -26,6 +26,8 @@ public interface TestContents {
     int MSG_SIZE_OF_2M = 2 * 1024 * 1024;
 
     //send rate: msg/s
+    int MSG_SEND_RATE_OF_1K = 1000;
+    int MSG_SEND_RATE_OF_2K = 2000;
     int MSG_SEND_RATE_OF_5K = 5000;
     int MSG_SEND_RATE_OF_3W = 30000;
     int MSG_SEND_RATE_OF_5W = 50000;

@@ -38,8 +38,9 @@ public class NoopMsgListener extends KSKingMQSPI implements IMsgListener{
 
     @Override
     public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
-        if(count++%1000==0) {
-            System.out.println(String.format("current receive total: %d", count));
+        count++;
+        if(count%1000==0) {
+            System.out.println(String.format("Im noop,current receive total: %d", count));
         }
     }
 

@@ -34,7 +34,12 @@ public class AmqpTestApplication {
                 System.getProperty("java.library.path"));
         System.loadLibrary("KSKingMQAPI");
         SpringApplication.run(AmqpTestApplication.class, args);
-        pressAnyKey("Press any key to stop..");
+        try {
+            Thread.sleep(Integer.MAX_VALUE);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //pressAnyKey("Press any key to stop..");
     }
 
 

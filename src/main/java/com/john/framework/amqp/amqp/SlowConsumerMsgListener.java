@@ -41,6 +41,9 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
     @Override
     public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
         count++;
+        if(count%1000==0) {
+            System.out.println(String.format("Im slow,current receive total: %d", count));
+        }
         try {
             AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
             JavaStruct.unpack(packet, pMsgbuf);
