@@ -6,7 +6,7 @@ TestCaseEnum
 3. 服务启动
 （1）指定使用的配置问津
 （2）指定使用哪种测试用例
-java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub2 --testCaseId=1
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=5 --sendRate=5000 --warmupTime=30 ---Djava.library.path=./
 
 3.1 testCase 1:
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=1 &
@@ -63,7 +63,7 @@ java -jar amqp-test-1.0.0.jar --spring.profiles.active=sub9 --testCaseId=4 &
 
 
 3.5 testCase 5:
-java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=5 --sendRate=5000 --testTime=30 -Djava.library.path=./ &
+java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=5 --sendRate=5000 --warmupTime=30 ---Djava.library.path=./ &
 
 3.6 testCase 6:
 java -jar amqp-test-1.0.0.jar --spring.profiles.active=pubsub1 --testCaseId=6 &
