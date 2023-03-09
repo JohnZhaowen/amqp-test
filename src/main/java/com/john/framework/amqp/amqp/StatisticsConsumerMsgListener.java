@@ -31,6 +31,8 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
     private volatile int[] latencyInUs;
 
+    private int latencyInUsLength = 0;
+
     private volatile boolean connect = false;
 
     private volatile boolean subscribe = false;
@@ -134,7 +136,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             JavaStruct.unpack(packet, pMsgbuf);
             long start = packet.getTimestampInNanos();
             latencyInUs[recvCount++] = (int)((end - start) / 1000);
-            if (recvCount== latencyInUs.length-1 ) stop_flag = 1;
+            if (recvCount== latencyInUsLength-1 ) stop_flag = 1;
         } catch (StructException e) {
             LOG.error("回调消息处理异常",e);
         }
@@ -151,6 +153,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
         warmupCount = testCaseEnum.msgSendRate * TestContents.WARMUP_TIME_IN_SECONDS;
         latencyInUs = new int[totalCount];
+        latencyInUsLength = latencyInUs.length;
         LOG.info("listener build for testCase: [{}], should send [{}] packets.",
                 testCaseEnum.testCaseId, totalCount);
     }
