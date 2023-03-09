@@ -150,8 +150,8 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
         this.testCaseEnum = testCaseEnum;
         init("LatencyDaemonThread");
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
-        totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
-        warmupCount = testCaseEnum.msgSendRate * TestContents.WARMUP_TIME_IN_SECONDS;
+        totalCount = testCaseEnum.msgSendRate * testTime;
+        warmupCount = testCaseEnum.msgSendRate * warmupTime;
         latencyInUs = new int[totalCount];
         latencyInUsLength = latencyInUs.length;
         LOG.info("listener build for testCase: [{}], should send [{}] packets.",
