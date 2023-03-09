@@ -10,8 +10,6 @@ public interface TestContents {
     String[] EXCHANGES = {"ENDMARK", "SZEX", "SHEX", "CFETS", "gold", "bond", "xbond", "fx", "option", "dimple"};
 
     String EXCHAGE = "FAST";
-    //String NONDURABLE_QUEUE_PREFIX = "fast-shared-durable-";
-    //String DURABLE_QUEUE_PREFIX = "fast-shared-nondurable-";
 
     String NONDURABLE_QUEUE_PREFIX = "90000";
     String DURABLE_QUEUE_PREFIX = "10000";
@@ -36,7 +34,7 @@ public interface TestContents {
 
     //test time, warn up time: s
     int TEST_TIME_IN_SECONDS = 60;
-    int WARNUP_TIME_IN_SECONDS = 30;
+    int WARMUP_TIME_IN_SECONDS = 30;
 
     //durable: boolean
     boolean MSG_DURABLE = true;

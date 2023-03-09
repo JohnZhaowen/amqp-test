@@ -10,6 +10,8 @@ public class TestStatistics {
 
     private int testCaseId;
 
+    private int msgSendRate;
+
     private double avgUs;
     private double maxUs;
     private double minUs;
@@ -27,15 +29,16 @@ public class TestStatistics {
 
         String[] s = new String[10];
         s[0] = String.valueOf(this.testCaseId);
-        s[1] = df.format(this.avgUs);
-        s[2] = df.format(this.maxUs);
-        s[3] = df.format(this.minUs);
-        s[4] = df.format(this.stdDev);
-        s[5] = df.format(this.latency90Us);
-        s[6] = df.format(this.latency95Us);
-        s[7] = df.format(this.latency99Us);
-        s[8] = df.format(this.latency99_9Us);
-        s[9] = String.valueOf(this.longLactencyCount);
+        s[1] = String.valueOf(this.msgSendRate);
+        s[2] = df.format(this.avgUs);
+        s[3] = df.format(this.maxUs);
+        s[4] = df.format(this.minUs);
+        s[5] = df.format(this.stdDev);
+        s[6] = df.format(this.latency90Us);
+        s[7] = df.format(this.latency95Us);
+        s[8] = df.format(this.latency99Us);
+        s[9] = df.format(this.latency99_9Us);
+        s[10] = String.valueOf(this.longLactencyCount);
         return s;
     }
 
@@ -46,6 +49,7 @@ public class TestStatistics {
 
         StringBuilder sb = new StringBuilder();
         return sb.append("testCaseId: ").append(this.testCaseId).append(", \n")
+                .append("msgSendRate: ").append(this.msgSendRate).append(", \n")
                 .append("avgUs: ").append(df.format(this.avgUs)).append(", \n")
                 .append("maxUs: ").append(df.format(maxUs)).append(", \n")
                 .append("minUs: ").append(df.format(this.minUs)).append("\n")
@@ -61,6 +65,7 @@ public class TestStatistics {
     public static void main(String[] args) {
         TestStatistics s = new TestStatistics();
         s.setTestCaseId(1220);
+        s.setMsgSendRate(5000);
         s.setAvgUs(10.002);
         s.setMaxUs(23.998);
         s.setMinUs(35.567);
@@ -85,6 +90,14 @@ public class TestStatistics {
 
     public void setTestCaseId(int testCaseId) {
         this.testCaseId = testCaseId;
+    }
+
+    public int getMsgSendRate() {
+        return msgSendRate;
+    }
+
+    public void setMsgSendRate(int msgSendRate) {
+        this.msgSendRate = msgSendRate;
     }
 
     public double getAvgUs() {

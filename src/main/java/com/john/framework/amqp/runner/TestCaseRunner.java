@@ -97,7 +97,7 @@ public class TestCaseRunner implements CommandLineRunner {
         //只订阅2种 一种是根testCase选择
         String[] bindingKeys = new String[2];
         bindingKeys[0] = BindingKeyGenerator.generateEndMark();
-        bindingKeys[1] =  BindingKeyGenerator.generate();
+        bindingKeys[1] = BindingKeyGenerator.generate();
 
         pubSub.sub(bindingKeys,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
@@ -110,8 +110,10 @@ public class TestCaseRunner implements CommandLineRunner {
 
     private void doPub(TestCaseEnum testCase) {
 
+        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+
         int msgSendRate = testCase.msgSendRate;
-        int totalSendMsgCount = msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
+        int totalSendMsgCount = msgSendRate * testTime;
         RateLimiter rateLimiter = RateLimiter.create(msgSendRate);
 
         AmqpMessage msg = new AmqpMessage(testCase.msgSize);
@@ -123,7 +125,7 @@ public class TestCaseRunner implements CommandLineRunner {
         int sendedCount = 0;
         long tv_start = System.nanoTime();
         while (sendedCount < totalSendMsgCount) {
-            String routingKey = RoutingKeyGenerator.generate();
+            String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
             rateLimiter.acquire();
             msg.setTimestampInNanos(System.nanoTime());
             pubSub.pub(msg,routingKey, durable);
@@ -145,8 +147,10 @@ public class TestCaseRunner implements CommandLineRunner {
     }
 
     private void doKsPub(TestCaseEnum testCase){
+        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+
         int msgSendRate = testCase.msgSendRate;
-        int totalSendMsgCount = msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
+        int totalSendMsgCount = msgSendRate * testTime;
 
         AmqpMessage msg = new AmqpMessage(testCase.msgSize);
         msg.setTestCaseId(testCase.testCaseId);
@@ -184,7 +188,7 @@ public class TestCaseRunner implements CommandLineRunner {
 
         int haveSend = 0;
         while(haveSend < totalSendMsgCount) {
-            String routingKey = RoutingKeyGenerator.generate();
+            String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
             msg.setTimestampInNanos(System.nanoTime());
             pubSub.pub(msg,routingKey,durable);
             haveSend++;

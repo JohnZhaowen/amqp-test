@@ -6,6 +6,7 @@ import com.john.framework.amqp.testcase.TestRawData;
 import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
 import com.john.framework.amqp.utils.MathUils;
+import com.john.framework.amqp.utils.SpringUtils;
 import com.john.framework.amqp.utils.StatisticsUtils;
 import com.kingstar.messaging.api.ErrorInfo;
 import com.kingstar.messaging.api.KSKingMQSPI;
@@ -26,7 +27,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
     private volatile int recvCount = 0;
 
-    private int warmUpCount;
+    private int warmupCount;
 
     private volatile int[] latencyInUs;
 
@@ -80,16 +81,16 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                     try {
                         LOG.info("receive finished, receive total:[{}], send count:[{}],start Statistics", recvCount, totalCount);
                         //所有消息已经接收完毕，则开始进行统计
-                        int[] recvLatencies = new int[recvCount-warmUpCount];
-                        System.arraycopy(latencyInUs, warmUpCount, recvLatencies, 0, recvLatencies.length);
+                        int[] recvLatencies = new int[recvCount- warmupCount];
+                        System.arraycopy(latencyInUs, warmupCount, recvLatencies, 0, recvLatencies.length);
                         latencyInUs = null;
                         //统计数据，一个测试用例生产一个统计数据
-                        TestStatistics statistics = StatisticsUtils.cal(recvLatencies, testCaseEnum.testCaseId);
+                        TestStatistics statistics = StatisticsUtils.cal(recvLatencies, testCaseEnum.testCaseId, testCaseEnum.msgSendRate);
                         CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_STATISTICS_FILENAME, statistics.toStringArr());
                         int[] rawLatencies = MathUils.split(recvLatencies, TestContents.LATENCY_RAW_BATCHES);
                         for (int rawLatency : rawLatencies) {
                             CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_RAW_FILENAME,
-                                    new TestRawData(testCaseEnum.testCaseId, rawLatency).toStringArr());
+                                    new TestRawData(testCaseEnum.testCaseId, testCaseEnum.msgSendRate, rawLatency).toStringArr());
                         }
                         LOG.info("testCase [{}] run finished, result: [{}]", testCaseEnum.testCaseId, statistics);
                     }catch (Exception e){
@@ -140,11 +141,15 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     }
 
     public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum) {
+        int testTime = Integer.parseInt(SpringUtils.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+        int warmupTime = Integer.parseInt(SpringUtils.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
+
+
         this.testCaseEnum = testCaseEnum;
         init("LatencyDaemonThread");
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * TestContents.TEST_TIME_IN_SECONDS;
-        warmUpCount = testCaseEnum.msgSendRate * TestContents.WARNUP_TIME_IN_SECONDS;
+        warmupCount = testCaseEnum.msgSendRate * TestContents.WARMUP_TIME_IN_SECONDS;
         latencyInUs = new int[totalCount];
         LOG.info("listener build for testCase: [{}], should send [{}] packets.",
                 testCaseEnum.testCaseId, totalCount);

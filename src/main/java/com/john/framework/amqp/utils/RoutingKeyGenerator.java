@@ -1,7 +1,9 @@
 package com.john.framework.amqp.utils;
 
 
+import com.john.framework.amqp.amqp.SimpleSub;
 import com.john.framework.amqp.testcase.TestContents;
+import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Arrays;
@@ -9,8 +11,34 @@ import java.util.Random;
 
 public class RoutingKeyGenerator {
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SimpleSub.class);
+
     //    private static final String template = "pilot.default.JET.SZ.{instrument_class}.{source_system_id}.{instrument_subclass}.{exch}.{product_id}.{exch_product_id}";
     private static final String TEMPLATE = "pilot.default.JET.SZ.{}.{}.{}.{}.{}.{}";
+
+    //(2, 2), 5, 10, (100, 100)
+
+    private static String[] routingKeys = new String[5000];
+
+    static {
+        for (int i = 0; i < 5000; i++) {
+            String[] args = new String[6];
+            args[0] = args[1] = randomString();
+            args[2] = randomString();
+            //交易所选择固定的几个值
+            args[3] = TestContents.EXCHANGES[Math.abs(new Random().nextInt()) % 10];
+            args[4] = args[5] = randomString();
+
+            routingKeys[i] = generate(args);
+        }
+        logger.info("routingKeys init finished. keys are: [{}]", Arrays.asList(routingKeys));
+    }
+
+    public static String getRandomRoutingKey() {
+        //0 - 4999
+        int index = Math.abs(new Random().nextInt()) % 5000;
+        return routingKeys[index];
+    }
 
     public static String generateEndMsgRoutingKey() {
 
@@ -70,15 +98,8 @@ public class RoutingKeyGenerator {
     }
 
     public static void main(String[] args) {
-        for(int i=0;i<10000000;i++){
-            String[] arr = generate().split("\\.");
-            if(arr.length!=10){
-                System.out.println(Arrays.toString(arr));
-                break;
-            }
+        for (int i = 0; i < 10; i++) {
+            System.out.println(getRandomRoutingKey());
         }
-
     }
-
-
 }

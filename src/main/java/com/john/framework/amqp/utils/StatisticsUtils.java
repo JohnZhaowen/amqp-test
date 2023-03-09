@@ -6,9 +6,10 @@ import java.util.Arrays;
 
 public class StatisticsUtils {
 
-    public static TestStatistics cal(int[] latencyInUs, int testCaseId) {
+    public static TestStatistics cal(int[] latencyInUs, int testCaseId, int msgSendRate) {
         TestStatistics statistics = new TestStatistics();
         statistics.setTestCaseId(testCaseId);
+        statistics.setMsgSendRate(msgSendRate);
 
         Arrays.sort(latencyInUs);
 

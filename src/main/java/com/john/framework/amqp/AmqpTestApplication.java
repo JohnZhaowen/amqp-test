@@ -54,7 +54,11 @@ public class AmqpTestApplication {
         IPubSub pubSub;
 
         int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
+        int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
+
+
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
+        testCaseEnum.msgSendRate = sendRate;
 
         if("sub".equalsIgnoreCase(environment.getProperty("appType"))){
             pubSub = new SimpleSub();

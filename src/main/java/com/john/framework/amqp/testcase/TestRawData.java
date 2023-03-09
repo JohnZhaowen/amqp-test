@@ -6,10 +6,13 @@ public class TestRawData {
 
     private int testCaseId;
 
+    private int msgSendRate;
+
     private double latency;
 
-    public TestRawData(int testCaseId, double latency) {
+    public TestRawData(int testCaseId, int msgSendRate, double latency) {
         this.testCaseId = testCaseId;
+        this.msgSendRate = msgSendRate;
         this.latency = latency;
     }
 
@@ -19,7 +22,8 @@ public class TestRawData {
 
         String[] s = new String[2];
         s[0] = String.valueOf(this.testCaseId);
-        s[1] = df.format(this.latency);
+        s[1] = String.valueOf(this.msgSendRate);
+        s[2] = df.format(this.latency);
         return s;
     }
 
@@ -30,12 +34,13 @@ public class TestRawData {
 
         StringBuilder sb = new StringBuilder();
         return sb.append("testCaseId: ").append(this.testCaseId).append(", \n")
+                .append("msgSendRate: ").append(df.format(this.msgSendRate))
                 .append("latency: ").append(df.format(this.latency))
                 .toString();
     }
 
     public static void main(String[] args) {
-        TestRawData d = new TestRawData(10, 19387.108763);
+        TestRawData d = new TestRawData(10, 12000, 19387.108763);
 //        System.out.println(d);
 
         for (String s : d.toStringArr()) {
@@ -49,6 +54,14 @@ public class TestRawData {
 
     public void setTestCaseId(int testCaseId) {
         this.testCaseId = testCaseId;
+    }
+
+    public int getMsgSendRate() {
+        return msgSendRate;
+    }
+
+    public void setMsgSendRate(int msgSendRate) {
+        this.msgSendRate = msgSendRate;
     }
 
     public double getLatency() {
