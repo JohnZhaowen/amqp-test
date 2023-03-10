@@ -73,7 +73,13 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                         LOG.error("", e);
                     }
                     while (stop_flag == 0) {
-                        LOG.info("current latency: [{}], finish: [{}%]", latencyInUs[recvCount], (recvCount / totalCount) * 100);
+                        LOG.info("current latency: [{}], finish: [{}%], count:[{}/{}]",
+                                latencyInUs[recvCount],
+                                (recvCount * 1.0 / totalCount) * 100,
+                                recvCount,
+                                totalCount
+                        );
+
                         try {
                             Thread.sleep(1000);
                         } catch (Exception e) {

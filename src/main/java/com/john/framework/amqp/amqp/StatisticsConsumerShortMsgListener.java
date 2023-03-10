@@ -77,6 +77,13 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
                         LOG.error("", e);
                     }
                     while (stop_flag == 0){
+                        LOG.info("current latency: [{}], finish: [{}%], count:[{}/{}]",
+                                latencyInUs[recvCount],
+                                (recvCount * 1.0 / totalCount) * 100,
+                                recvCount,
+                                totalCount
+                                );
+
                         LOG.info("current finish: [{}/{}]", recvCount, totalCount);
                         try {
                             Thread.sleep(1000);
