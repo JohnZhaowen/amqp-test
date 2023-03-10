@@ -3,8 +3,6 @@ package com.john.framework.amqp.amqp;
 import com.kingstar.messaging.api.ErrorInfo;
 import com.kingstar.messaging.api.KSKingMQSPI;
 import com.kingstar.messaging.api.ReConnectStatus;
-import com.kingstar.struct.JavaStruct;
-import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +39,7 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
     }
 
     @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
+    public void OnMessage(String routingKey, byte[] pMsgbuf) {
         count++;
         if(count%1000==0) {
             System.out.println(String.format("Im slow,current receive total: %d", count));

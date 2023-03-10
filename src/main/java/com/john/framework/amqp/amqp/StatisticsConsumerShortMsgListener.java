@@ -6,13 +6,10 @@ import com.john.framework.amqp.testcase.TestRawData;
 import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
 import com.john.framework.amqp.utils.MathUils;
-import com.john.framework.amqp.utils.SpringUtils;
 import com.john.framework.amqp.utils.StatisticsUtils;
 import com.kingstar.messaging.api.ErrorInfo;
 import com.kingstar.messaging.api.KSKingMQSPI;
 import com.kingstar.messaging.api.ReConnectStatus;
-import com.kingstar.struct.JavaStruct;
-import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -77,14 +74,7 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
                         LOG.error("", e);
                     }
                     while (stop_flag == 0){
-                        LOG.info("current latency: [{}], finish: [{}%], count:[{}/{}]",
-                                latencyInUs[recvCount],
-                                (recvCount * 1.0 / totalCount) * 100,
-                                recvCount,
-                                totalCount
-                                );
-
-                        LOG.info("current finish: [{}/{}]", recvCount, totalCount);
+                        LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
                         try {
                             Thread.sleep(1000);
                         }catch (Exception e){
@@ -141,7 +131,8 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
     }
 
     @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
+    public void OnMessage(String routingKey, byte[] pMsgbuf) {
+        if (recvCount >= latencyInUsLength) return;
         long end = System.nanoTime();
         byteBuffer.put(pMsgbuf,0,8);
         byteBuffer.flip();

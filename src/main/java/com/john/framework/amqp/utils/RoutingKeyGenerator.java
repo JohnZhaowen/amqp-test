@@ -8,6 +8,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RoutingKeyGenerator {
 
@@ -19,6 +20,8 @@ public class RoutingKeyGenerator {
     //(2, 2), 5, 10, (100, 100)
 
     private static String[] routingKeys = new String[5000];
+
+    private static final Random random = new Random();
 
     static {
         for (int i = 0; i < 5000; i++) {
@@ -39,7 +42,15 @@ public class RoutingKeyGenerator {
 
     public static String getRandomRoutingKey() {
         //0 - 4999
-        int index = Math.abs(new Random().nextInt()) % 5000;
+        //int index = Math.abs(new Random().nextInt()) % 5000;
+        int index = random.nextInt(5000);
+        return routingKeys[index];
+    }
+
+    public static String getRandomRoutingKey1() {
+        //0 - 4999
+        ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
+        int index = threadLocalRandom.nextInt(5000);
         return routingKeys[index];
     }
 
@@ -101,8 +112,10 @@ public class RoutingKeyGenerator {
     }
 
     public static void main(String[] args) {
-        for (int i = 0; i < 10; i++) {
-            System.out.println(getRandomRoutingKey());
+        long start = System.nanoTime();
+        for (int i = 0; i < 100000; i++) {
+            getRandomRoutingKey1();
         }
+        System.out.println((System.nanoTime()-start)/1000);
     }
 }

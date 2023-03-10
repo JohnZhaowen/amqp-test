@@ -6,7 +6,6 @@ import com.john.framework.amqp.testcase.TestRawData;
 import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
 import com.john.framework.amqp.utils.MathUils;
-import com.john.framework.amqp.utils.SpringUtils;
 import com.john.framework.amqp.utils.StatisticsUtils;
 import com.kingstar.messaging.api.ErrorInfo;
 import com.kingstar.messaging.api.KSKingMQSPI;
@@ -73,13 +72,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                         LOG.error("", e);
                     }
                     while (stop_flag == 0) {
-                        LOG.info("current latency: [{}], finish: [{}%], count:[{}/{}]",
-                                latencyInUs[recvCount],
-                                (recvCount * 1.0 / totalCount) * 100,
-                                recvCount,
-                                totalCount
-                        );
-
+                        LOG.info("current Latency [{}]us,current count:[{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
                         try {
                             Thread.sleep(1000);
                         } catch (Exception e) {
@@ -136,8 +129,11 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     }
 
     @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
+    public void OnMessage(String routingKey, byte[] pMsgbuf) {
         try {
+            if (recvCount >= latencyInUsLength) return;
+
+
             long end = System.nanoTime();
             AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
             JavaStruct.unpack(packet, pMsgbuf);
