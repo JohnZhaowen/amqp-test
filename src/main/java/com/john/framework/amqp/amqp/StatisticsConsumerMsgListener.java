@@ -20,7 +20,7 @@ import org.springframework.core.env.Environment;
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener{
+public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerMsgListener.class);
 
@@ -46,37 +46,37 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     private TestCaseEnum testCaseEnum = null;
 
     //延迟打印时间线程
-    private Thread latencyThread=null;
+    private Thread latencyThread = null;
 
 
-    private void init(String threadName){
-        if(init){
+    private void init(String threadName) {
+        if (init) {
             LOG.info("init LatencyDaemonThread repeat...");
-            return ;
+            return;
         }
         this.startLatencyDaemonThread(threadName);
         init = true;
         LOG.info("LatencyDaemonThread init end...");
     }
 
-    private void startLatencyDaemonThread(String threadName){
-        if(init){
-            return ;
+    private void startLatencyDaemonThread(String threadName) {
+        if (init) {
+            return;
         }
         try {
-            this.latencyThread = new Thread(){
+            this.latencyThread = new Thread() {
                 @Override
                 public void run() {
                     try {
                         Thread.sleep(1000);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         LOG.error("", e);
                     }
-                    while (stop_flag == 0){
-                        LOG.info("current finish: [{}/{}]", recvCount, totalCount);
+                    while (stop_flag == 0) {
+                        LOG.info("current latency: [{}], finish: [{}%]", latencyInUs[recvCount], (recvCount / totalCount) * 100);
                         try {
                             Thread.sleep(1000);
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             LOG.error("", e);
                         }
                     }
@@ -84,7 +84,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                     try {
                         LOG.info("receive finished, receive total:[{}], send count:[{}],start Statistics", recvCount, totalCount);
                         //所有消息已经接收完毕，则开始进行统计
-                        int[] recvLatencies = new int[recvCount- warmupCount];
+                        int[] recvLatencies = new int[recvCount - warmupCount];
                         System.arraycopy(latencyInUs, warmupCount, recvLatencies, 0, recvLatencies.length);
                         latencyInUs = null;
                         //统计数据，一个测试用例生产一个统计数据
@@ -96,7 +96,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                                     new TestRawData(testCaseEnum.testCaseId, testCaseEnum.msgSendRate, rawLatency).toStringArr());
                         }
                         LOG.info("testCase [{}] run finished, result: [{}]", testCaseEnum.testCaseId, statistics);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         LOG.error("Statistics exception", e);
                     }
                 }
@@ -104,7 +104,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             this.latencyThread.setName(threadName);
             this.latencyThread.setDaemon(true);
             this.latencyThread.start();
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.error("", e);
         }
     }
@@ -136,10 +136,10 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
             JavaStruct.unpack(packet, pMsgbuf);
             long start = packet.getTimestampInNanos();
-            latencyInUs[recvCount++] = (int)((end - start) / 1000);
-            if (recvCount== latencyInUsLength-1 ) stop_flag = 1;
+            latencyInUs[recvCount++] = (int) ((end - start) / 1000);
+            if (recvCount == latencyInUsLength - 1) stop_flag = 1;
         } catch (StructException e) {
-            LOG.error("回调消息处理异常",e);
+            LOG.error("回调消息处理异常", e);
         }
     }
 
