@@ -7,6 +7,8 @@ import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
+
 public class SimplePub implements IPubSub {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleSub.class);
@@ -14,6 +16,8 @@ public class SimplePub implements IPubSub {
     private KSKingMQ ksKingMQ;
 
     private volatile boolean init = false;
+
+    private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
 
     @Override
     public void init() {
@@ -56,6 +60,15 @@ public class SimplePub implements IPubSub {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public void pub(byte[] msg, String routingKey, int persist) {
+        byteBuffer.putLong(System.nanoTime());
+        int end = byteBuffer.limit();
+        for (int i = 0; i < end; i++) msg[i] = byteBuffer.get(i);
+        ksKingMQ.publish(routingKey, msg, persist);
+        byteBuffer.clear();
     }
 
     @Override

@@ -50,22 +50,19 @@ public class AmqpTestApplication {
 
     @Bean
     public IPubSub pubSub(){
-
         IPubSub pubSub;
-
         int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
-        int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
-
-
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
-        testCaseEnum.msgSendRate = sendRate;
-
         if("sub".equalsIgnoreCase(environment.getProperty("appType"))){
             pubSub = new SimpleSub();
         }else if("pub".equalsIgnoreCase(environment.getProperty("appType"))){
+            int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
+            testCaseEnum.msgSendRate = sendRate;
             pubSub = new SimplePub();
         }else if("pubsub".equalsIgnoreCase(environment.getProperty("appType"))){
-            pubSub = new PubSubStatistics(testCaseEnum);
+            int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
+            testCaseEnum.msgSendRate = sendRate;
+            pubSub = new PubSubStatistics(testCaseEnum,environment);
         } else {
             return null;
         }

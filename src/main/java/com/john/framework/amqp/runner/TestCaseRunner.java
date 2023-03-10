@@ -79,7 +79,9 @@ public class TestCaseRunner implements CommandLineRunner {
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable, null);
         if (sub) {
-            if(environment.getProperty("sendType")==null||"".equalsIgnoreCase(environment.getProperty("sendType"))){
+            if(StringUtils.isBlank(environment.getProperty("sendType"))||"ks1".equalsIgnoreCase(environment.getProperty("sendType"))){
+                doKsPubByShortMsg(testCase);
+            }else if("ks2".equalsIgnoreCase(environment.getProperty("sendType"))){
                 doKsPub(testCase);
             }else{
                 doPub(testCase);
@@ -191,6 +193,88 @@ public class TestCaseRunner implements CommandLineRunner {
             String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
             msg.setTimestampInNanos(System.nanoTime());
             pubSub.pub(msg,routingKey,durable);
+            haveSend++;
+            /*
+             *  wait for yield_num_per_second
+             */
+
+            for(int j=0;j<yield_num_per_message;j++){
+            }
+
+            /**
+             * 实际每1000条耗时
+             */
+            if (haveSend % 1000 == 0){
+                //实际每1000秒耗时
+                long tv_k_real = System.nanoTime();
+
+                double real_duration_per_k = (tv_k_real - tv_k) / 1000;  /* the real sending time in usec for current 1000 packets */
+
+                double _yield_num_per_message = 0.985 * yield_num_per_message * desired_duration_per_k / real_duration_per_k;
+                yield_num_per_message = Double.valueOf(_yield_num_per_message).longValue();
+
+                if (yield_num_per_message < 1)
+                    yield_num_per_message = 1;
+
+                tv_k = tv_k_real;
+            }
+        }
+        //发送endMark消息
+        //msg.setEndMark((short) 1);
+        //pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
+        long tv_end = System.nanoTime();
+        //计算总耗时 us
+        long usec = (tv_end - tv_start) / 1000;
+        //计算总耗时 s
+        double sec = usec / 1000000.0;
+        //计算速率
+        double avgPkt = totalSendMsgCount/sec;
+        LOG.info(String.format("Send %d %dbytes packets in %d us (%.2f s), %.0f pkt/sec",
+                totalSendMsgCount, testCase.msgSize, usec, sec, avgPkt));
+    }
+
+
+    private void doKsPubByShortMsg(TestCaseEnum testCase){
+        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+
+        int msgSendRate = testCase.msgSendRate;
+        int totalSendMsgCount = msgSendRate * testTime;
+
+
+        int durable = testCase.durable ? 1 : 0;
+        LOG.info("start pub packet by kingstar");
+        //每发送一条要等待多少yield （忽略发送的时间消耗）
+        long yield_num_per_message;
+
+        //理论计算在此速率下 每1000包发送需要的时间 us
+        double desired_duration_per_k = 1000 * 1000000.0 / msgSendRate;
+
+        long tv = System.nanoTime();
+
+        for(int j=0;j<100000;j++){
+        }
+
+        long tv1 = System.nanoTime();
+
+        double yield_duration = (tv1 - tv) / 1000.0 / 100000.0;
+        //计算发送一次需要多少 yield_num 控制速率
+        yield_num_per_message = Math.round(1000000.0 /(msgSendRate * yield_duration * 1.05));
+        //最低是一个
+        if (yield_num_per_message < 1) yield_num_per_message = 1;
+
+        LOG.info(String.format("yield_duration = %f  yield_num_per_message = %d", yield_duration, yield_num_per_message));
+        //起始时间
+        long tv_start = System.nanoTime();
+        /**
+         *  每1000条花费时间 起始等于 tv_start
+         */
+        long tv_k = tv_start;
+
+        int haveSend = 0;
+        byte[] bizPacket = new byte[testCase.msgSize];
+        while(haveSend < totalSendMsgCount) {
+            String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
+            pubSub.pub(bizPacket,routingKey,durable);
             haveSend++;
             /*
              *  wait for yield_num_per_second

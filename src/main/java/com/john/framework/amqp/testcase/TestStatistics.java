@@ -27,7 +27,7 @@ public class TestStatistics {
 
         DecimalFormat df = new DecimalFormat("0.00");
 
-        String[] s = new String[10];
+        String[] s = new String[11];
         s[0] = String.valueOf(this.testCaseId);
         s[1] = String.valueOf(this.msgSendRate);
         s[2] = df.format(this.avgUs);

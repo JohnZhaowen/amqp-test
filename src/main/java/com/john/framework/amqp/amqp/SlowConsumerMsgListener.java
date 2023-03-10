@@ -8,6 +8,8 @@ import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Random;
+
 public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener{
 
     private static final Logger logger = LoggerFactory.getLogger(SlowConsumerMsgListener.class);
@@ -45,11 +47,12 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
             System.out.println(String.format("Im slow,current receive total: %d", count));
         }
         try {
-            AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
-            JavaStruct.unpack(packet, pMsgbuf);
-            onMsg(packet);
-            Thread.sleep(1000);
-        } catch (InterruptedException|StructException e) {
+            //兼容新的包结构 此处不再解包
+            //AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
+            //JavaStruct.unpack(packet, pMsgbuf);
+            //onMsg(packet);
+            Thread.sleep(new Random().nextInt(500)+500);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

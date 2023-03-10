@@ -31,7 +31,7 @@ public class RoutingKeyGenerator {
 
             routingKeys[i] = generate(args);
         }
-        logger.info("routingKeys init finished. keys are: [{}]", Arrays.asList(routingKeys));
+        logger.debug("routingKeys init finished. keys are: [{}]", Arrays.asList(routingKeys));
     }
 
     public static String getRandomRoutingKey() {

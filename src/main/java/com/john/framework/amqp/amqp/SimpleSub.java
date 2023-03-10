@@ -17,6 +17,11 @@ public class SimpleSub implements IPubSub {
         return false;
     }
 
+    @Override
+    public void pub(byte[] msg, String routingKey, int persist) {
+
+    }
+
     private KSKingMQ ksKingMQ;
 
     private volatile boolean init = false;

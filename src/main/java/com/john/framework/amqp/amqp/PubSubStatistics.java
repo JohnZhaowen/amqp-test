@@ -3,12 +3,17 @@ package com.john.framework.amqp.amqp;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
+import com.kingstar.messaging.api.KSKingMQSPI;
 import com.kingstar.messaging.api.QueueType;
 import com.kingstar.messaging.api.ReqSubscribeField;
 import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+
+import java.nio.ByteBuffer;
 
 public class PubSubStatistics implements IPubSub {
 
@@ -18,10 +23,17 @@ public class PubSubStatistics implements IPubSub {
 
     private volatile boolean init = false;
 
-    private StatisticsConsumerMsgListener ksKingMQSPI;
+    private IMsgListener ksKingMQSPI;
 
-    public PubSubStatistics(TestCaseEnum testCaseEnum) {
-        ksKingMQSPI = new StatisticsConsumerMsgListener(testCaseEnum);
+    private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
+
+    private Environment environment;
+
+    private TestCaseEnum testCaseEnum;
+
+    public PubSubStatistics(TestCaseEnum testCaseEnum,Environment environment) {
+        this.environment = environment;
+        this.testCaseEnum = testCaseEnum;
     }
 
     @Override
@@ -33,8 +45,15 @@ public class PubSubStatistics implements IPubSub {
         init = true;
         //注册一个回调 不订订阅即可
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
+        String sendType = environment.getProperty("sendType");
+        if(StringUtils.isBlank(sendType)||"ks1".equalsIgnoreCase(sendType)){
+            ksKingMQSPI = new StatisticsConsumerShortMsgListener(testCaseEnum,environment);
+        }else if("ks2".equalsIgnoreCase(sendType)){
+            ksKingMQSPI = new StatisticsConsumerMsgListener(testCaseEnum,environment);
+        }
+        KSKingMQSPI mqspi = (KSKingMQSPI)ksKingMQSPI;
         //连接 broker
-        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
+        APIResult apiResult = ksKingMQ.ConnectServer(mqspi);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
             logger.error("connect server failed! error code:{},,error msg:{}", apiResult.swigValue(),
                     apiResult.toString());
@@ -64,6 +83,15 @@ public class PubSubStatistics implements IPubSub {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public void pub(byte[] msg, String routingKey, int persist) {
+        byteBuffer.putLong(System.nanoTime());
+        int end = byteBuffer.limit();
+        for (int i = 0; i < end; i++) msg[i] = byteBuffer.get(i);
+        ksKingMQ.publish(routingKey, msg, persist);
+        byteBuffer.clear();
     }
 
     @Override

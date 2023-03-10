@@ -20,7 +20,7 @@ public class TestRawData {
 
         DecimalFormat df = new DecimalFormat("0.00");
 
-        String[] s = new String[2];
+        String[] s = new String[3];
         s[0] = String.valueOf(this.testCaseId);
         s[1] = String.valueOf(this.msgSendRate);
         s[2] = df.format(this.latency);

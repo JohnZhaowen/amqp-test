@@ -17,12 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
+import java.nio.ByteBuffer;
+
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener{
+public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements IMsgListener{
 
-    private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerMsgListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerShortMsgListener.class);
 
     private int totalCount;
 
@@ -44,6 +46,8 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     volatile int stop_flag = 0;
 
     private TestCaseEnum testCaseEnum = null;
+
+    private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
 
     //延迟打印时间线程
     private Thread latencyThread=null;
@@ -131,19 +135,16 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
 
     @Override
     public void OnMessage(String routingKey, byte[] pMsgbuf, ErrorInfo pErrorInfo) {
-        try {
-            long end = System.nanoTime();
-            AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
-            JavaStruct.unpack(packet, pMsgbuf);
-            long start = packet.getTimestampInNanos();
-            latencyInUs[recvCount++] = (int)((end - start) / 1000);
-            if (recvCount== latencyInUsLength-1 ) stop_flag = 1;
-        } catch (StructException e) {
-            LOG.error("回调消息处理异常",e);
-        }
+        long end = System.nanoTime();
+        byteBuffer.put(pMsgbuf,0,8);
+        byteBuffer.flip();
+        long start = byteBuffer.getLong();
+        byteBuffer.clear();
+        latencyInUs[recvCount++] = (int)((end - start) / 1000);
+        if (recvCount== latencyInUsLength-1 ) stop_flag = 1;
     }
 
-    public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
+    public StatisticsConsumerShortMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
         int warmupTime = Integer.parseInt(environment.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
 
