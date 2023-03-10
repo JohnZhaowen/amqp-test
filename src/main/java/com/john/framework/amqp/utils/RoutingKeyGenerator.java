@@ -23,15 +23,18 @@ public class RoutingKeyGenerator {
     static {
         for (int i = 0; i < 5000; i++) {
             String[] args = new String[6];
-            args[0] = args[1] = randomString();
-            args[2] = randomString();
+            args[0] = Contents.INSTRUMENT_CLASS[Math.abs(new Random().nextInt()) % 2];
+            args[1] = Contents.SOURCE_SYSTEM_ID[Math.abs(new Random().nextInt()) % 2];
+            args[2] = Contents.INSTRUMENT_SUBCLASS[Math.abs(new Random().nextInt()) % 5];
+            args[3] = Contents.EXCHANGES[Math.abs(new Random().nextInt()) % 10];
+
             //交易所选择固定的几个值
-            args[3] = TestContents.EXCHANGES[Math.abs(new Random().nextInt()) % 10];
-            args[4] = args[5] = randomString();
+            args[4] = Contents.PRODUCTID[Math.abs(new Random().nextInt()) % 100];
+            args[5] = Contents.EXTRODUCTID[Math.abs(new Random().nextInt()) % 100];
 
             routingKeys[i] = generate(args);
         }
-        logger.debug("routingKeys init finished. keys are: [{}]", Arrays.asList(routingKeys));
+
     }
 
     public static String getRandomRoutingKey() {
