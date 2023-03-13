@@ -68,21 +68,17 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
             this.latencyThread = new Thread(){
                 @Override
                 public void run() {
-                    try {
-                        Thread.sleep(1000);
-                    }catch (Exception e){
-                        LOG.error("", e);
-                    }
-                    while (stop_flag == 0){
-                        LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
-                        try {
-                            Thread.sleep(1000);
-                        }catch (Exception e){
-                            LOG.error("", e);
-                        }
-                    }
                     //计算时延
                     try {
+                        Thread.sleep(1000);
+                        while (stop_flag == 0){
+                            if(recvCount==0){
+                                LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount], recvCount, totalCount);
+                            }else{
+                                LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
+                            }
+                            Thread.sleep(1000);
+                        }
                         LOG.info("receive finished, receive total:[{}], send count:[{}],start Statistics", recvCount, totalCount);
                         //所有消息已经接收完毕，则开始进行统计
                         int[] recvLatencies = new int[recvCount- warmupCount];
@@ -138,7 +134,11 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
         byteBuffer.flip();
         long start = byteBuffer.getLong();
         byteBuffer.clear();
-        latencyInUs[recvCount++] = (int)((end - start) / 1000);
+        int  latency = (int)((end - start) / 1000);
+        latencyInUs[recvCount++] = latency;
+        //if(latency>=1000){
+        //    LOG.info("latency >= 1000, seq_no:{},latency:{}",recvCount,latency);
+        //}
         if (recvCount== latencyInUsLength-1 ) stop_flag = 1;
     }
 
@@ -149,6 +149,7 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
 
         this.testCaseEnum = testCaseEnum;
         init("LatencyDaemonThread");
+        LOG.info("测试用例详情:{}",testCaseEnum.toString());
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * testTime;
         warmupCount = testCaseEnum.msgSendRate * warmupTime;

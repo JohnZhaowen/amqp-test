@@ -62,10 +62,13 @@ public class TestCaseRunner implements CommandLineRunner {
                 doPubsub(testCase);
                 break;
             case "pub":
-                doPub(testCase);
+                doKsPubByShortMsg(testCase);
                 break;
             case "sub":
                 doSub(testCase);
+                break;
+            case "sub10":
+                doSub10(testCase);
                 break;
             default:
                 throw new IllegalArgumentException("appType: " + appType + " is not valid.");
@@ -106,6 +109,22 @@ public class TestCaseRunner implements CommandLineRunner {
                 testCase.durable,
                 //只选择节点5进行满消费测试
                 testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener()
+        );
+    }
+
+
+    /**
+     * 调用该方法的只会是sub10 就是统计分开
+     *
+     * @param testCase
+     */
+    private void doSub10(TestCaseEnum testCase) {
+        //统计sub10 固定传统计
+        pubSub.sub(BindingKeyGenerator.generateAll(),
+                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                testCase.durable,
+                //只选择节点5进行满消费测试
+                new StatisticsConsumerShortMsgListener(testCase,environment)
         );
     }
 
@@ -170,6 +189,7 @@ public class TestCaseRunner implements CommandLineRunner {
         long tv = System.nanoTime();
 
         for(int j=0;j<100000;j++){
+            //Thread.yield();
         }
 
         long tv1 = System.nanoTime();
@@ -199,6 +219,7 @@ public class TestCaseRunner implements CommandLineRunner {
              */
 
             for(int j=0;j<yield_num_per_message;j++){
+                //Thread.yield();
             }
 
             /**
@@ -252,6 +273,7 @@ public class TestCaseRunner implements CommandLineRunner {
         long tv = System.nanoTime();
 
         for(int j=0;j<100000;j++){
+            //Thread.yield();
         }
 
         long tv1 = System.nanoTime();
@@ -281,6 +303,7 @@ public class TestCaseRunner implements CommandLineRunner {
              */
 
             for(int j=0;j<yield_num_per_message;j++){
+                //Thread.yield();
             }
 
             /**

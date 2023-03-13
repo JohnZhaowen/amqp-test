@@ -66,24 +66,20 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
             this.latencyThread = new Thread() {
                 @Override
                 public void run() {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                        LOG.error("", e);
-                    }
-                    while (stop_flag == 0) {
-                        LOG.info("current Latency [{}]us,current count:[{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
-                        try {
-                            Thread.sleep(1000);
-                        } catch (Exception e) {
-                            LOG.error("", e);
-                        }
-                    }
                     //计算时延
                     try {
+                        Thread.sleep(1000);
+                        while (stop_flag == 0){
+                            if(recvCount==0){
+                                LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount], recvCount, totalCount);
+                            }else{
+                                LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
+                            }
+                            Thread.sleep(1000);
+                        }
                         LOG.info("receive finished, receive total:[{}], send count:[{}],start Statistics", recvCount, totalCount);
                         //所有消息已经接收完毕，则开始进行统计
-                        int[] recvLatencies = new int[recvCount - warmupCount];
+                        int[] recvLatencies = new int[recvCount- warmupCount];
                         System.arraycopy(latencyInUs, warmupCount, recvLatencies, 0, recvLatencies.length);
                         latencyInUs = null;
                         //统计数据，一个测试用例生产一个统计数据
@@ -95,7 +91,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                                     new TestRawData(testCaseEnum.testCaseId, testCaseEnum.msgSendRate, rawLatency).toStringArr());
                         }
                         LOG.info("testCase [{}] run finished, result: [{}]", testCaseEnum.testCaseId, statistics);
-                    } catch (Exception e) {
+                    }catch (Exception e){
                         LOG.error("Statistics exception", e);
                     }
                 }
@@ -132,8 +128,6 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     public void OnMessage(String routingKey, byte[] pMsgbuf) {
         try {
             if (recvCount >= latencyInUsLength) return;
-
-
             long end = System.nanoTime();
             AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
             JavaStruct.unpack(packet, pMsgbuf);

@@ -5,6 +5,7 @@ import com.john.framework.amqp.amqp.SimplePub;
 import com.john.framework.amqp.amqp.PubSubStatistics;
 import com.john.framework.amqp.amqp.SimpleSub;
 import com.john.framework.amqp.testcase.TestCaseEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,16 +53,23 @@ public class AmqpTestApplication {
     public IPubSub pubSub(){
         IPubSub pubSub;
         int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
+        int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
-        if("sub".equalsIgnoreCase(environment.getProperty("appType"))){
+        testCaseEnum.msgSendRate = sendRate;
+        String msgSize = environment.getProperty("packetsize");
+
+        if("sub".equalsIgnoreCase(environment.getProperty("appType"))
+                ||"sub10".equalsIgnoreCase(environment.getProperty("appType"))){
             pubSub = new SimpleSub();
         }else if("pub".equalsIgnoreCase(environment.getProperty("appType"))){
-            int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
-            testCaseEnum.msgSendRate = sendRate;
+            if(StringUtils.isNotBlank(msgSize)){
+                testCaseEnum.msgSize = Integer.parseInt(msgSize);
+            }
             pubSub = new SimplePub();
         }else if("pubsub".equalsIgnoreCase(environment.getProperty("appType"))){
-            int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
-            testCaseEnum.msgSendRate = sendRate;
+            if(StringUtils.isNotBlank(msgSize)){
+                testCaseEnum.msgSize = Integer.parseInt(msgSize);
+            }
             pubSub = new PubSubStatistics(testCaseEnum,environment);
         } else {
             return null;

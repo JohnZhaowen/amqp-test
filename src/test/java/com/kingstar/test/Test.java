@@ -25,5 +25,12 @@ public class Test {
             JavaStruct.unpack(amqpMessage1,bytes);
         }
         System.out.println((System.nanoTime()-start)/10000000);
+
+        byte[] msg = new byte[1024];
+        for(int i=0;i<msg.length;i++){
+            System.out.println(msg[i]);
+        }
     }
-}
+
+
+ }

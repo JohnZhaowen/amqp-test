@@ -67,7 +67,7 @@ public enum TestCaseEnum {
 
     public final int testCaseId;
 
-    public final int msgSize;
+    public int msgSize;
     public int msgSendRate;
     public final int pubsubCount;
     public final boolean durable;
@@ -94,16 +94,14 @@ public enum TestCaseEnum {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("TestCase: [\n");
-        sb.append("testCaseId: ").append(testCaseId).append("\n")
-                .append("msgSize: ").append(msgSize).append("bytes \n")
-                .append("msgSendRate: ").append(msgSendRate).append("\n")
-                .append("pubsubCount: ").append(pubsubCount).append("\n")
-                .append("durable").append(durable).append("\n")
-                .append("slowConsumer: ").append(slowConsumer).append("\n")
-                .append("]\n");
-        return sb.toString();
-
+        return "TestCaseEnum{" +
+                "testCaseId=" + testCaseId +
+                ", msgSize=" + msgSize +
+                ", msgSendRate=" + msgSendRate +
+                ", pubsubCount=" + pubsubCount +
+                ", durable=" + durable +
+                ", slowConsumer=" + slowConsumer +
+                "} ";
     }
 
     public static void main(String[] args) {

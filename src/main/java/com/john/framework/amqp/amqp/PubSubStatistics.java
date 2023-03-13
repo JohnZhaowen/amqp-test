@@ -48,7 +48,7 @@ public class PubSubStatistics implements IPubSub {
         String sendType = environment.getProperty("sendType");
         if(StringUtils.isBlank(sendType)||"ks1".equalsIgnoreCase(sendType)){
             ksKingMQSPI = new StatisticsConsumerShortMsgListener(testCaseEnum,environment);
-        }else if("ks2".equalsIgnoreCase(sendType)){
+        }else{
             ksKingMQSPI = new StatisticsConsumerMsgListener(testCaseEnum,environment);
         }
         KSKingMQSPI mqspi = (KSKingMQSPI)ksKingMQSPI;
