@@ -1,27 +1,26 @@
 package com.john.framework.amqp.runner;
 
 import com.google.common.util.concurrent.RateLimiter;
-import com.john.framework.amqp.amqp.*;
+import com.john.framework.amqp.amqp.AmqpMessage;
+import com.john.framework.amqp.amqp.IPubSub;
+import com.john.framework.amqp.amqp.NoopMsgListener;
+import com.john.framework.amqp.amqp.SlowConsumerMsgListener;
+import com.john.framework.amqp.amqp.StatisticsConsumerShortMsgListener;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
-import com.kingstar.messaging.api.KSKingMQ;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.nio.ByteBuffer;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Component
 public class TestCaseRunner implements CommandLineRunner {
@@ -336,5 +335,6 @@ public class TestCaseRunner implements CommandLineRunner {
         double avgPkt = totalSendMsgCount/sec;
         LOG.info(String.format("Send %d %dbytes packets in %d us (%.2f s), %.0f pkt/sec",
                 totalSendMsgCount, testCase.msgSize, usec, sec, avgPkt));
+        //pubSub.statistics();
     }
 }

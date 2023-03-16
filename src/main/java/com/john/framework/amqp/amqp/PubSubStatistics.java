@@ -1,6 +1,9 @@
 package com.john.framework.amqp.amqp;
 
 import com.john.framework.amqp.testcase.TestCaseEnum;
+import com.john.framework.amqp.testcase.TestContents;
+import com.john.framework.amqp.utils.MathUils;
+import com.john.framework.amqp.utils.MathUtils;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
 import com.kingstar.messaging.api.KSKingMQSPI;
@@ -12,8 +15,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.xerial.snappy.Snappy;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class PubSubStatistics implements IPubSub {
 
@@ -31,6 +37,11 @@ public class PubSubStatistics implements IPubSub {
 
     private TestCaseEnum testCaseEnum;
 
+    int stop_flag = 0;
+
+    volatile long[] rtt;
+    volatile int rtt_count = 0;
+
     public PubSubStatistics(TestCaseEnum testCaseEnum,Environment environment) {
         this.environment = environment;
         this.testCaseEnum = testCaseEnum;
@@ -43,6 +54,8 @@ public class PubSubStatistics implements IPubSub {
             return;
         }
         init = true;
+        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+        rtt = new long[testCaseEnum.msgSendRate*testTime];
         //注册一个回调 不订订阅即可
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         String sendType = environment.getProperty("sendType");
@@ -74,6 +87,15 @@ public class PubSubStatistics implements IPubSub {
     }
 
     @Override
+    public void statistics() {
+        try {
+            report();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public boolean pub(AmqpMessage msg, String routingKey, int persist) {
         try {
             byte[] send = JavaStruct.pack(msg);
@@ -87,11 +109,43 @@ public class PubSubStatistics implements IPubSub {
 
     @Override
     public void pub(byte[] msg, String routingKey, int persist) {
-        byteBuffer.putLong(System.nanoTime());
+        long t1 = System.nanoTime();
+        byteBuffer.putLong(t1);
         int end = byteBuffer.limit();
         for (int i = 0; i < end; i++) msg[i] = byteBuffer.get(i);
         ksKingMQ.publish(routingKey, msg, persist);
         byteBuffer.clear();
+    }
+
+    //根据平均速度计算
+    private void report() {
+
+        double avg=0.0;
+        //copy 数组
+        Arrays.sort(rtt, 0, rtt.length);
+
+        int longLatencyCount = 0;
+        int subLength = rtt.length;
+        for(int i = 0; i < subLength; i++) {
+            avg += rtt[i];
+            if(rtt[i]>1000){
+                longLatencyCount++;
+            }
+        }
+
+        avg /= (double)subLength;
+
+        double stdDev = MathUtils.calStdDev(avg,rtt);
+
+        System.out.printf("min = %d, max=%d avg=%.0f%n", rtt[0],rtt[subLength-1], avg);
+        System.out.printf("999pcnt = %d%n", rtt[(int) (subLength * 0.999)]);
+        System.out.printf("99pcnt = %d%n", rtt[(int) (subLength * 0.99)]);
+        System.out.printf("95pcnt = %d%n", rtt[(int) (subLength * 0.95)]);
+        System.out.printf("90pcnt = %d%n", rtt[(int) (subLength * 0.90)]);
+        System.out.printf("50pcnt = %d%n", rtt[(int) (subLength * 0.50)]);
+
+        System.out.println("stdDev ="+stdDev);
+        System.out.println("longLatencyCount="+longLatencyCount);
     }
 
     @Override

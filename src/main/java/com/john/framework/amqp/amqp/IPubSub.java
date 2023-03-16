@@ -15,4 +15,5 @@ public interface IPubSub {
 
     void init();
 
+    default void statistics(){};
 }
