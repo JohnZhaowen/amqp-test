@@ -19,6 +19,11 @@ import org.xerial.snappy.Snappy;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 该监听器用于统计延时信息
@@ -53,8 +58,12 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
     //延迟打印时间线程
     private Thread latencyThread=null;
 
+    private List<Integer> latencyInUsList = new CopyOnWriteArrayList<>();
+
     volatile long[] rtt;
     volatile int rtt_count = 0;
+
+    private ExecutorService executorService = Executors.newFixedThreadPool(10);
 
 
     private void init(String threadName){
@@ -78,19 +87,35 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
                     //计算时延
                     try {
                         Thread.sleep(1000);
-                        while (stop_flag == 0){
-                            if(recvCount==0){
-                                LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount], recvCount, totalCount);
-                            }else{
-                                LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
+                        if(testCaseEnum.testCaseId==2){
+                            while (latencyInUsList.size()<totalCount){
+                                LOG.info("current finish: [{}/{}/{}]", latencyInUsList.size(),recvCount, totalCount);
+                                Thread.sleep(1000);
                             }
-                            Thread.sleep(1000);
+                        }else{
+                            while (stop_flag == 0){
+                                if(recvCount==0){
+                                    LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount], recvCount, totalCount);
+                                }else{
+                                    LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
+                                }
+                                Thread.sleep(1000);
+                            }
                         }
+                        LOG.info("current finish: [{}/{}/{}]", latencyInUsList.size(),recvCount, totalCount);
+                        executorService.awaitTermination(10, TimeUnit.SECONDS);
                         LOG.info("receive finished, receive total:[{}], send count:[{}],start Statistics", recvCount, totalCount);
-                        report();
+                        //report();
                         //所有消息已经接收完毕，则开始进行统计
                         int[] recvLatencies = new int[recvCount- warmupCount];
-                        System.arraycopy(latencyInUs, warmupCount, recvLatencies, 0, recvLatencies.length);
+                        if(testCaseEnum.testCaseId==2){
+                            Integer[] dest = latencyInUsList.toArray(new Integer[latencyInUsList.size()]);
+                            int[] res = Arrays.stream(dest).mapToInt(Integer::valueOf).toArray();
+                            System.arraycopy(res, warmupCount, recvLatencies, 0, recvLatencies.length);
+                        }else{
+                            System.arraycopy(latencyInUs, warmupCount, recvLatencies, 0, recvLatencies.length);
+                        }
+
                         latencyInUs = null;
                         //统计数据，一个测试用例生产一个统计数据
                         TestStatistics statistics = StatisticsUtils.cal(recvLatencies, testCaseEnum.testCaseId, testCaseEnum.msgSendRate);
@@ -137,22 +162,26 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
     @Override
     public void OnMessage(String routingKey, byte[] pMsgbuf) {
         long end = System.nanoTime();
-        if (recvCount >= latencyInUsLength) return;
-        //byte[] unzip = Snappy.uncompress(pMsgbuf);
-        //long end1 = System.nanoTime();
-        //rtt[rtt_count++] = (end1-end)/1000;
-        byteBuffer.put(pMsgbuf,0,8);
-        byteBuffer.flip();
-        long start = byteBuffer.getLong();
-        byteBuffer.clear();
-        int  latency = (int)((end - start) / 1000);
-        latencyInUs[recvCount++] = latency;
-        if (recvCount== latencyInUsLength-1 ) stop_flag = 1;
-        long end1 = System.nanoTime();
-        rtt[rtt_count++] = (end1-end)/1000;
-        //unzip = null;
-        pMsgbuf = null;
-
+        recvCount++;
+        if (recvCount > latencyInUsLength) return;
+        //2m的走多线程解压
+        try {
+            if(Snappy.isValidCompressedBuffer(pMsgbuf)){
+                InnerThread innerThread = new InnerThread(pMsgbuf,end);
+                executorService.submit(innerThread);
+            }else{
+                byteBuffer.put(pMsgbuf,0,8);
+                byteBuffer.flip();
+                long start = byteBuffer.getLong();
+                byteBuffer.clear();
+                int  latency = (int)((end - start) / 1000);
+                latencyInUs[recvCount-1] = latency;
+                pMsgbuf = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (recvCount== latencyInUsLength) stop_flag = 1;
     }
 
     //根据平均速度计算
@@ -218,5 +247,34 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
 
     public void setSubscribe(boolean subscribe) {
         this.subscribe = subscribe;
+    }
+
+    class InnerThread implements Runnable{
+
+        byte[] msg;
+        long end;
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
+
+        public InnerThread(byte[] msg, long end) {
+            this.msg = msg;
+            this.end = end;
+        }
+
+        @Override
+        public void run() {
+            try {
+                byte[] unzip = Snappy.uncompress(msg);
+                byteBuffer.put(unzip,0,8);
+                byteBuffer.flip();
+                long start = byteBuffer.getLong();
+                byteBuffer.clear();
+                int  latency = (int)((end - start) / 1000);
+                latencyInUsList.add(latency);
+                msg = null;
+                unzip = null;
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 }

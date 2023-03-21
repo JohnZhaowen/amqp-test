@@ -65,7 +65,7 @@ public class AmqpTestApplication {
             if(StringUtils.isNotBlank(msgSize)){
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);
             }
-            pubSub = new SimplePub();
+            pubSub = new SimplePub(testCaseEnum,environment);
         }else if("pubsub".equalsIgnoreCase(environment.getProperty("appType"))){
             if(StringUtils.isNotBlank(msgSize)){
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);

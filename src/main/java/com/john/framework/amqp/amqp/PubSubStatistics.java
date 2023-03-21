@@ -37,6 +37,10 @@ public class PubSubStatistics implements IPubSub {
 
     private TestCaseEnum testCaseEnum;
 
+    //包多大要压缩
+    private int compressLen = 2*1024*1024;
+    private int packetSize;
+
     int stop_flag = 0;
 
     volatile long[] rtt;
@@ -54,8 +58,10 @@ public class PubSubStatistics implements IPubSub {
             return;
         }
         init = true;
+        compressLen = Integer.parseInt(environment.getProperty("compressLen", TestContents.MSG_SIZE_OF_2M+""));
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
         rtt = new long[testCaseEnum.msgSendRate*testTime];
+        packetSize = testCaseEnum.msgSize;
         //注册一个回调 不订订阅即可
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         String sendType = environment.getProperty("sendType");
@@ -109,12 +115,21 @@ public class PubSubStatistics implements IPubSub {
 
     @Override
     public void pub(byte[] msg, String routingKey, int persist) {
-        long t1 = System.nanoTime();
-        byteBuffer.putLong(t1);
+        byteBuffer.putLong(System.nanoTime());
         int end = byteBuffer.limit();
         for (int i = 0; i < end; i++) msg[i] = byteBuffer.get(i);
-        ksKingMQ.publish(routingKey, msg, persist);
         byteBuffer.clear();
+        //测试案例2压缩
+        if(packetSize>=compressLen){
+            try {
+                byte[] bytes = Snappy.compress(msg);
+                ksKingMQ.publish(routingKey, bytes, persist);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            ksKingMQ.publish(routingKey, msg, persist);
+        }
     }
 
     //根据平均速度计算

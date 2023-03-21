@@ -27,11 +27,20 @@ public class TestUnit {
         byte[] zip = Snappy.compress(data);
         byteBuffer.clear();
         System.out.println(zip.length);
+        System.out.println(Snappy.isValidCompressedBuffer(zip));
+        System.out.println(Snappy.isValidCompressedBuffer(data));
         byte[] unzip = Snappy.uncompress(zip);
         byteBuffer1.put(unzip,0,8);
         byteBuffer1.flip();
         long start1 = byteBuffer1.getLong();
         byteBuffer1.clear();
         System.out.println(start1);
+    }
+
+    @Test
+    public void test1(){
+        int i=0;
+        i++;
+        System.out.println(i);
     }
 }
