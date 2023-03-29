@@ -11,12 +11,23 @@ public class BindingKeyGenerator {
 
     private static final String BINDING_KEY = "pilot.default.JET.SZ.*.*.*.{}.*.*";
 
+    private static final String[] RANDOM_BINGING_KEYS={
+            "pilot.default.JET.SZ.FUT.*.*.*.*.*",
+            "pilot.default.JET.SZ.*.IRS.*.*.*.*",
+            "pilot.default.JET.SZ.CMDTY.*.pilot.ENDMARK.*.*",
+            "pilot.default.JET.SZ.*.IRS.*.dimple.*.*",
+            "pilot.default.JET.SZ.*.*.*.dimple.100031.*",
+            "pilot.default.JET.SZ.FUT.IRS.qb.*.*.*",
+            "pilot.default.JET.SZ.FUT.IRS.qb.dimple.100034.200089",
+            "pilot.default.JET.SZ.FUT.*.*.*.*.200030",
+            "pilot.default.JET.SZ.*.IRS.*.dimple.*.200089",
+            "pilot.default.JET.SZ.FUT.*.*.*.100035.*"
+
+    };
+
 
     public static String generate() {
-
-        String[] arsg = new String[1];
-        arsg[0] = TestContents.EXCHANGES[Math.abs(new Random().nextInt()) % 10];
-        return MessageFormatter.arrayFormat(BINDING_KEY, arsg).getMessage();
+        return RANDOM_BINGING_KEYS[Math.abs(new Random().nextInt()) % 10];
     }
 
     public static String[] generateAll() {

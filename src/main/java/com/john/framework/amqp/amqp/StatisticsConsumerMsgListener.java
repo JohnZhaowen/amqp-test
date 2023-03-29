@@ -83,13 +83,15 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                         System.arraycopy(latencyInUs, warmupCount, recvLatencies, 0, recvLatencies.length);
                         latencyInUs = null;
                         //统计数据，一个测试用例生产一个统计数据
-                        TestStatistics statistics = StatisticsUtils.cal(recvLatencies, testCaseEnum.testCaseId, testCaseEnum.msgSendRate);
-                        CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_STATISTICS_FILENAME, statistics.toStringArr());
                         int[] rawLatencies = MathUils.split(recvLatencies, TestContents.LATENCY_RAW_BATCHES);
                         for (int rawLatency : rawLatencies) {
                             CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_RAW_FILENAME,
                                     new TestRawData(testCaseEnum.testCaseId, testCaseEnum.msgSendRate, rawLatency).toStringArr());
                         }
+
+                        TestStatistics statistics = StatisticsUtils.cal(recvLatencies, testCaseEnum.testCaseId, testCaseEnum.msgSendRate);
+                        CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_STATISTICS_FILENAME, statistics.toStringArr());
+
                         LOG.info("testCase [{}] run finished, result: [{}]", testCaseEnum.testCaseId, statistics);
                     }catch (Exception e){
                         LOG.error("Statistics exception", e);
