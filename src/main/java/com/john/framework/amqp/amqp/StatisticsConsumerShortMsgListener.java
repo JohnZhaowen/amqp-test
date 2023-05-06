@@ -55,6 +55,9 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
 
     private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
 
+    //解压用的buffer
+    private volatile ByteBuffer unzipByteBuffer = ByteBuffer.allocateDirect(8);
+
     //延迟打印时间线程
     private Thread latencyThread=null;
 
@@ -63,7 +66,8 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
     volatile long[] rtt;
     volatile int rtt_count = 0;
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(10);
+    //使用单线程解压
+    private ExecutorService executorService = Executors.newFixedThreadPool(1);
 
 
     private void init(String threadName){
@@ -161,7 +165,7 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
     }
 
     @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf) {
+    public void OnMessage(String routingKey, byte[] pMsgbuf,long seq_no) {
         long end = System.nanoTime();
         recvCount++;
         if (recvCount > latencyInUsLength) return;
@@ -254,7 +258,6 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
 
         byte[] msg;
         long end;
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
 
         public InnerThread(byte[] msg, long end) {
             this.msg = msg;
@@ -265,16 +268,17 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
         public void run() {
             try {
                 byte[] unzip = Snappy.uncompress(msg);
-                byteBuffer.put(unzip,0,8);
-                byteBuffer.flip();
-                long start = byteBuffer.getLong();
-                byteBuffer.clear();
+                unzipByteBuffer.put(unzip,0,8);
+                unzipByteBuffer.flip();
+                long start = unzipByteBuffer.getLong();
                 int  latency = (int)((end - start) / 1000);
                 latencyInUsList.add(latency);
                 msg = null;
                 unzip = null;
             }catch (Exception e){
                 e.printStackTrace();
+            }finally {
+                unzipByteBuffer.clear();
             }
         }
     }

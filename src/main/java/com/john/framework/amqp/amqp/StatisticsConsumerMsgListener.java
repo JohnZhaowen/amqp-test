@@ -127,7 +127,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     }
 
     @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf) {
+    public void OnMessage(String routingKey, byte[] pMsgbuf,long seq_no) {
         try {
             if (recvCount >= latencyInUsLength) return;
             long end = System.nanoTime();

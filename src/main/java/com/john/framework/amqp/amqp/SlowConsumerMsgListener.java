@@ -39,7 +39,7 @@ public class SlowConsumerMsgListener extends KSKingMQSPI implements IMsgListener
     }
 
     @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf) {
+    public void OnMessage(String routingKey, byte[] pMsgbuf,long seq_no) {
         count++;
         if(count%1000==0) {
             System.out.println(String.format("Im slow,current receive total: %d", count));

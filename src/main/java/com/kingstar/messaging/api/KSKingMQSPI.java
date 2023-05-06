@@ -63,8 +63,8 @@ public class KSKingMQSPI {
     if (getClass() == KSKingMQSPI.class) KSKingMQAPIJNI.KSKingMQSPI_OnRtnSubscribe(swigCPtr, this, pQueue, ErrorInfo.getCPtr(pErrorInfo), pErrorInfo); else KSKingMQAPIJNI.KSKingMQSPI_OnRtnSubscribeSwigExplicitKSKingMQSPI(swigCPtr, this, pQueue, ErrorInfo.getCPtr(pErrorInfo), pErrorInfo);
   }
 
-  public void OnMessage(String routingKey, byte[] pMsgbuf) {
-    if (getClass() == KSKingMQSPI.class) KSKingMQAPIJNI.KSKingMQSPI_OnMessage(swigCPtr, this, routingKey, pMsgbuf); else KSKingMQAPIJNI.KSKingMQSPI_OnMessageSwigExplicitKSKingMQSPI(swigCPtr, this, routingKey, pMsgbuf);
+  public void OnMessage(String routingKey, byte[] pMsgbuf, long seq_no) {
+    if (getClass() == KSKingMQSPI.class) KSKingMQAPIJNI.KSKingMQSPI_OnMessage(swigCPtr, this, routingKey, pMsgbuf, seq_no); else KSKingMQAPIJNI.KSKingMQSPI_OnMessageSwigExplicitKSKingMQSPI(swigCPtr, this, routingKey, pMsgbuf, seq_no);
   }
 
   public KSKingMQSPI() {

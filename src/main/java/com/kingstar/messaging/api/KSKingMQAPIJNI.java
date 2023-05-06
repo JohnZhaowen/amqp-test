@@ -106,8 +106,8 @@ public class KSKingMQAPIJNI {
   public final static native void KSKingMQSPI_OnDisconnectedSwigExplicitKSKingMQSPI(long jarg1, KSKingMQSPI jarg1_, int jarg2, long jarg3, ErrorInfo jarg3_);
   public final static native void KSKingMQSPI_OnRtnSubscribe(long jarg1, KSKingMQSPI jarg1_, String jarg2, long jarg3, ErrorInfo jarg3_);
   public final static native void KSKingMQSPI_OnRtnSubscribeSwigExplicitKSKingMQSPI(long jarg1, KSKingMQSPI jarg1_, String jarg2, long jarg3, ErrorInfo jarg3_);
-  public final static native void KSKingMQSPI_OnMessage(long jarg1, KSKingMQSPI jarg1_, String jarg2, byte[] jarg3);
-  public final static native void KSKingMQSPI_OnMessageSwigExplicitKSKingMQSPI(long jarg1, KSKingMQSPI jarg1_, String jarg2, byte[] jarg3);
+  public final static native void KSKingMQSPI_OnMessage(long jarg1, KSKingMQSPI jarg1_, String jarg2, byte[] jarg3, long jarg5);
+  public final static native void KSKingMQSPI_OnMessageSwigExplicitKSKingMQSPI(long jarg1, KSKingMQSPI jarg1_, String jarg2, byte[] jarg3, long jarg5);
   public final static native long new_KSKingMQSPI();
   public final static native void KSKingMQSPI_director_connect(KSKingMQSPI obj, long cptr, boolean mem_own, boolean weak_global);
   public final static native void KSKingMQSPI_change_ownership(KSKingMQSPI obj, long cptr, boolean take_or_release);
@@ -131,8 +131,8 @@ public class KSKingMQAPIJNI {
   public static void SwigDirector_KSKingMQSPI_OnRtnSubscribe(KSKingMQSPI jself, String pQueue, long pErrorInfo) {
     jself.OnRtnSubscribe(pQueue, (pErrorInfo == 0) ? null : new ErrorInfo(pErrorInfo, false));
   }
-  public static void SwigDirector_KSKingMQSPI_OnMessage(KSKingMQSPI jself, String routingKey, byte[] pMsgbuf) {
-    jself.OnMessage(routingKey, pMsgbuf);
+  public static void SwigDirector_KSKingMQSPI_OnMessage(KSKingMQSPI jself, String routingKey, byte[] pMsgbuf, long seq_no) {
+    jself.OnMessage(routingKey, pMsgbuf, seq_no);
   }
   public static int SwigDirector_KSKingMQ_ConnectServer(KSKingMQ jself, long pSpi) {
     return (jself.ConnectServer((pSpi == 0) ? null : new KSKingMQSPI(pSpi, false))).swigValue();
