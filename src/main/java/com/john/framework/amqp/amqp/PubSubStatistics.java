@@ -2,7 +2,6 @@ package com.john.framework.amqp.amqp;
 
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
-import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.MathUtils;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
@@ -66,9 +65,9 @@ public class PubSubStatistics implements IPubSub {
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         String sendType = environment.getProperty("sendType");
         if(StringUtils.isBlank(sendType)||"ks1".equalsIgnoreCase(sendType)){
-            ksKingMQSPI = new StatisticsConsumerShortMsgListener(testCaseEnum,environment);
+            ksKingMQSPI = new PerformanceStatisticsConsumerMsgListener(testCaseEnum,environment);
         }else{
-            ksKingMQSPI = new StatisticsConsumerMsgListener(testCaseEnum,environment);
+            ksKingMQSPI = new FunctionalStatisticsConsumerMsgListener(testCaseEnum,environment);
         }
         KSKingMQSPI mqspi = (KSKingMQSPI)ksKingMQSPI;
         //连接 broker

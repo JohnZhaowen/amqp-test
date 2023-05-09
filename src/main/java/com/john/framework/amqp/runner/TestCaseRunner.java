@@ -5,7 +5,7 @@ import com.john.framework.amqp.amqp.AmqpMessage;
 import com.john.framework.amqp.amqp.IPubSub;
 import com.john.framework.amqp.amqp.NoopMsgListener;
 import com.john.framework.amqp.amqp.SlowConsumerMsgListener;
-import com.john.framework.amqp.amqp.StatisticsConsumerShortMsgListener;
+import com.john.framework.amqp.amqp.PerformanceStatisticsConsumerMsgListener;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.BindingKeyGenerator;
@@ -123,7 +123,7 @@ public class TestCaseRunner implements CommandLineRunner {
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,
                 //只选择节点5进行满消费测试
-                new StatisticsConsumerShortMsgListener(testCase,environment)
+                new PerformanceStatisticsConsumerMsgListener(testCase,environment)
         );
     }
 

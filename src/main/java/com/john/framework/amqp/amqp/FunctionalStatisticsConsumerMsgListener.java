@@ -19,9 +19,9 @@ import org.springframework.core.env.Environment;
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener {
+public class FunctionalStatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerMsgListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FunctionalStatisticsConsumerMsgListener.class);
 
     private int totalCount;
 
@@ -141,7 +141,7 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
         }
     }
 
-    public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
+    public FunctionalStatisticsConsumerMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
         int warmupTime = Integer.parseInt(environment.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
 

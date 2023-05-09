@@ -28,9 +28,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements IMsgListener{
+public class PerformanceStatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener{
 
-    private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerShortMsgListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PerformanceStatisticsConsumerMsgListener.class);
 
     private int totalCount;
 
@@ -220,7 +220,7 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
         System.out.println("longLatencyCount="+longLatencyCount);
     }
 
-    public StatisticsConsumerShortMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
+    public PerformanceStatisticsConsumerMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
         int warmupTime = Integer.parseInt(environment.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
 
