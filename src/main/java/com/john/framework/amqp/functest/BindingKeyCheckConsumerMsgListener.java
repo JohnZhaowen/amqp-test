@@ -7,9 +7,9 @@ import com.john.framework.amqp.utils.MD5Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RoutingKeyCheckConsumerMsgListener implements IMsgListener {
+public class BindingKeyCheckConsumerMsgListener implements IMsgListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(RoutingKeyCheckConsumerMsgListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(BindingKeyCheckConsumerMsgListener.class);
 
     private int recvCount = 0;
     private int lastSeq = 0;
