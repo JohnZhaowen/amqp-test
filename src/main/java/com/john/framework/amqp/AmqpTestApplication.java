@@ -1,8 +1,8 @@
 package com.john.framework.amqp;
 
 import com.john.framework.amqp.amqp.IPubSub;
-import com.john.framework.amqp.amqp.SimplePub;
 import com.john.framework.amqp.amqp.PubSubStatistics;
+import com.john.framework.amqp.amqp.SimplePub;
 import com.john.framework.amqp.amqp.SimpleSub;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +50,7 @@ public class AmqpTestApplication {
     }
 
     @Bean
-    public IPubSub pubSub(){
+    public IPubSub pubSub() {
         IPubSub pubSub;
         int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
         int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
@@ -58,19 +58,19 @@ public class AmqpTestApplication {
         testCaseEnum.msgSendRate = sendRate;
         String msgSize = environment.getProperty("packetsize");
 
-        if("sub".equalsIgnoreCase(environment.getProperty("appType"))
-                ||"sub10".equalsIgnoreCase(environment.getProperty("appType"))){
+        if ("sub".equalsIgnoreCase(environment.getProperty("appType"))
+                || "sub10".equalsIgnoreCase(environment.getProperty("appType"))) {
             pubSub = new SimpleSub();
-        }else if("pub".equalsIgnoreCase(environment.getProperty("appType"))){
-            if(StringUtils.isNotBlank(msgSize)){
+        } else if ("pub".equalsIgnoreCase(environment.getProperty("appType"))) {
+            if (StringUtils.isNotBlank(msgSize)) {
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);
             }
-            pubSub = new SimplePub(testCaseEnum,environment);
-        }else if("pubsub".equalsIgnoreCase(environment.getProperty("appType"))){
-            if(StringUtils.isNotBlank(msgSize)){
+            pubSub = new SimplePub(testCaseEnum, environment);
+        } else if ("pubsub".equalsIgnoreCase(environment.getProperty("appType"))) {
+            if (StringUtils.isNotBlank(msgSize)) {
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);
             }
-            pubSub = new PubSubStatistics(testCaseEnum,environment);
+            pubSub = new PubSubStatistics(testCaseEnum, environment);
         } else {
             return null;
         }

@@ -106,7 +106,7 @@ public class TestCaseRunner implements CommandLineRunner {
         pubSub.sub(bindingKeys,
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable,
-                //只选择节点5进行满消费测试
+                //只选择节点5进行慢消费测试
                 testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener()
         );
     }

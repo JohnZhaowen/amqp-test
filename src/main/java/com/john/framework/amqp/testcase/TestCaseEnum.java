@@ -58,12 +58,27 @@ public enum TestCaseEnum {
             TestContents.PUB_1_SUB_10,
             TestContents.MSG_DURABLE,
             TestContents.NON_SLOW_CONSUMER),
+
     MKTDATA_TEST_8(
             8,
             TestContents.MSG_SIZE_OF_1500,
             TestContents.PUB_1_SUB_10,
             TestContents.MSG_DURABLE,
-            TestContents.SLOW_CONSUMER);
+            TestContents.SLOW_CONSUMER),
+
+    MKTDATA_TEST_10(
+            10,
+            TestContents.MSG_SIZE_OF_1500,
+            TestContents.PUB_1_SUB_1,
+            TestContents.MSG_DURABLE,
+            TestContents.NON_SLOW_CONSUMER),
+
+
+
+
+
+
+    ;
 
     public final int testCaseId;
 
