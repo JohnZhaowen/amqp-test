@@ -1,10 +1,6 @@
 package com.john.framework.amqp.amqp;
 
-import com.kingstar.messaging.api.APIResult;
-import com.kingstar.messaging.api.KSKingMQ;
-import com.kingstar.messaging.api.KSKingMQSPI;
-import com.kingstar.messaging.api.QueueType;
-import com.kingstar.messaging.api.ReqSubscribeField;
+import com.kingstar.messaging.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +48,7 @@ public class SimpleSub implements IPubSub {
                 ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
                 //创建订阅topic
                 //声明queue
-                for (int i=0;i<bindingKeys.length;i++) {
+                for (int i = 0; i < bindingKeys.length; i++) {
                     reqSubscribeField.setCnt(1);
                     QueueType queueType = new QueueType();
                     queueType.setDurable(durable ? 1 : 0);
@@ -68,7 +64,7 @@ public class SimpleSub implements IPubSub {
                     }
                     while (true) {
                         if (listener.subscribe()) {
-                            if(i!=9){
+                            if (i != 9) {
                                 //重置
                                 listener.setSubscribe(false);
                             }
