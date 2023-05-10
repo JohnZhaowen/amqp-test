@@ -6,7 +6,7 @@ import com.kingstar.messaging.api.ReConnectStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Random;
+import java.util.Objects;
 
 /**
  * @Description TODO
@@ -21,11 +21,10 @@ public class KSKingMQServerAPI extends KSKingMQSPI implements KSKingMQServerStat
 
     private volatile boolean subscribe = false;
 
-    private volatile int count = 0;
-
     private IMsgListener msgListener;
 
     public KSKingMQServerAPI(IMsgListener msgListener) {
+        Objects.requireNonNull(msgListener);
         this.msgListener = msgListener;
     }
 
@@ -51,11 +50,7 @@ public class KSKingMQServerAPI extends KSKingMQSPI implements KSKingMQServerStat
 
     @Override
     public void OnMessage(String routingKey, byte[] pMsgbuf,long seq_no) {
-
-    }
-
-    public int getCount() {
-        return count;
+        msgListener.onMsg(routingKey,pMsgbuf,seq_no);
     }
 
     @Override

@@ -2,11 +2,9 @@ package com.john.framework.amqp.amqp;
 
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
-import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.MathUtils;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
-import com.kingstar.messaging.api.KSKingMQSPI;
 import com.kingstar.messaging.api.QueueType;
 import com.kingstar.messaging.api.ReqSubscribeField;
 import com.kingstar.struct.JavaStruct;
@@ -29,7 +27,7 @@ public class PubSubStatistics implements IPubSub {
 
     private volatile boolean init = false;
 
-    private IMsgListener ksKingMQSPI;
+    private KSKingMQServerAPI ksKingMQServerAPI;
 
     private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
 
@@ -41,7 +39,6 @@ public class PubSubStatistics implements IPubSub {
     private int compressLen = 2*1024*1024;
     private int packetSize;
 
-    int stop_flag = 0;
 
     volatile long[] rtt;
     volatile int rtt_count = 0;
@@ -66,20 +63,19 @@ public class PubSubStatistics implements IPubSub {
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         String sendType = environment.getProperty("sendType");
         if(StringUtils.isBlank(sendType)||"ks1".equalsIgnoreCase(sendType)){
-            ksKingMQSPI = new StatisticsConsumerShortMsgListener(testCaseEnum,environment);
+            ksKingMQServerAPI = new KSKingMQServerAPI(new StatisticsConsumerShortMsgListener(testCaseEnum,environment));
         }else{
-            ksKingMQSPI = new StatisticsConsumerMsgListener(testCaseEnum,environment);
+            ksKingMQServerAPI = new KSKingMQServerAPI(new StatisticsConsumerMsgListener(testCaseEnum,environment));
         }
-        KSKingMQSPI mqspi = (KSKingMQSPI)ksKingMQSPI;
         //连接 broker
-        APIResult apiResult = ksKingMQ.ConnectServer(mqspi);
+        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
             logger.error("connect server failed! error code:{},,error msg:{}", apiResult.swigValue(),
                     apiResult.toString());
             throw new RuntimeException("connect server failed!error msg:" + apiResult.toString());
         }
         while (true) {
-            if (ksKingMQSPI.connect()) {
+            if (ksKingMQServerAPI.connect()) {
                 init = true;
                 break;
             }
@@ -182,10 +178,10 @@ public class PubSubStatistics implements IPubSub {
                 return false;
             }
             while (true) {
-                if (ksKingMQSPI.subscribe()) {
+                if (ksKingMQServerAPI.subscribe()) {
                     if(i!=9){
                         //重置
-                        ksKingMQSPI.setSubscribe(false);
+                        ksKingMQServerAPI.setSubscribe(false);
                     }
                     break;
                 }

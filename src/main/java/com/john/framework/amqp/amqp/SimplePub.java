@@ -47,16 +47,17 @@ public class SimplePub implements IPubSub {
         compressLen = Integer.parseInt(environment.getProperty("compressLen", TestContents.MSG_SIZE_OF_2M+""));
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         packetSize = testCaseEnum.msgSize;
-        NoopMsgListener ksKingMQSPI = new NoopMsgListener();
+
+        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(new NoopMsgListener());
         //连接 broker
-        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
+        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
             logger.error("connect server failed! error code:{},,error msg:{}", apiResult.swigValue(),
                     apiResult.toString());
             throw new RuntimeException("connect server failed!error msg:" + apiResult.toString());
         }
         while (true) {
-            if (ksKingMQSPI.connect()) {
+            if (ksKingMQServerAPI.connect()) {
                 break;
             }
             try {

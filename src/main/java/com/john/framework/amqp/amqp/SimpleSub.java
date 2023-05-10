@@ -35,16 +35,17 @@ public class SimpleSub implements IPubSub {
 
     @Override
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
-        KSKingMQSPI ksKingMQSPI = (KSKingMQSPI) listener;
+
+        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(listener);
         //连接 broker
-        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
+        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
             logger.error("connect server failed! error code:{},,error msg:{}", apiResult.swigValue(),
                     apiResult.toString());
             return false;
         }
         while (true) {
-            if (listener.connect()) {
+            if (ksKingMQServerAPI.connect()) {
                 ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
                 //创建订阅topic
                 //声明queue
@@ -63,10 +64,10 @@ public class SimpleSub implements IPubSub {
                         return false;
                     }
                     while (true) {
-                        if (listener.subscribe()) {
+                        if (ksKingMQServerAPI.subscribe()) {
                             if (i != 9) {
                                 //重置
-                                listener.setSubscribe(false);
+                                ksKingMQServerAPI.setSubscribe(false);
                             }
                             break;
                         }

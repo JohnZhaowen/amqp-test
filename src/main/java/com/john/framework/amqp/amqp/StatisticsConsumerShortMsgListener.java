@@ -8,9 +8,6 @@ import com.john.framework.amqp.utils.CsvUtils;
 import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.MathUtils;
 import com.john.framework.amqp.utils.StatisticsUtils;
-import com.kingstar.messaging.api.ErrorInfo;
-import com.kingstar.messaging.api.KSKingMQSPI;
-import com.kingstar.messaging.api.ReConnectStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -28,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements IMsgListener{
+public class StatisticsConsumerShortMsgListener implements IMsgListener{
 
     private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerShortMsgListener.class);
 
@@ -41,10 +38,6 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
     private volatile int[] latencyInUs;
 
     private int latencyInUsLength = 0;
-
-    private volatile boolean connect = false;
-
-    private volatile boolean subscribe = false;
 
     //初始化标识
     private volatile boolean init = false;
@@ -144,51 +137,6 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
         }
     }
 
-    @Override
-    public void OnConnected() {
-        LOG.info("OnConnected callback, sub client connected to broker!");
-        connect = true;
-    }
-
-    @Override
-    public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
-        LOG.warn("OnDisconnected callback, sub client disconnected to broker! error code:" + pErrorInfo.getErrorId() +
-                ",error msg:" + pErrorInfo.getErrorMessage());
-    }
-
-    @Override
-    public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
-        LOG.info("OnRtnSubscribe callback, sub client Subscribed success ,queue name:" + pQueue);
-        if (pErrorInfo.getErrorId() == 0) {
-            subscribe = true;
-        }
-    }
-
-    @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf,long seq_no) {
-        long end = System.nanoTime();
-        recvCount++;
-        if (recvCount > latencyInUsLength) return;
-        //2m的走多线程解压
-        try {
-            if(Snappy.isValidCompressedBuffer(pMsgbuf)){
-                InnerThread innerThread = new InnerThread(pMsgbuf,end);
-                executorService.submit(innerThread);
-            }else{
-                byteBuffer.put(pMsgbuf,0,8);
-                byteBuffer.flip();
-                long start = byteBuffer.getLong();
-                byteBuffer.clear();
-                int  latency = (int)((end - start) / 1000);
-                latencyInUs[recvCount-1] = latency;
-                pMsgbuf = null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (recvCount== latencyInUsLength) stop_flag = 1;
-    }
-
     //根据平均速度计算
     private void report() {
 
@@ -238,20 +186,29 @@ public class StatisticsConsumerShortMsgListener extends KSKingMQSPI implements I
                 testCaseEnum.testCaseId, totalCount);
     }
 
-    public void onMsg(AmqpMessage msg) {
-
-    }
-
-    public boolean connect() {
-        return connect;
-    }
-
-    public boolean subscribe() {
-        return subscribe;
-    }
-
-    public void setSubscribe(boolean subscribe) {
-        this.subscribe = subscribe;
+    @Override
+    public void onMsg(String routingKey, byte[] pMsgbuf, long seq_no) {
+        long end = System.nanoTime();
+        recvCount++;
+        if (recvCount > latencyInUsLength) return;
+        //2m的走多线程解压
+        try {
+            if(Snappy.isValidCompressedBuffer(pMsgbuf)){
+                InnerThread innerThread = new InnerThread(pMsgbuf,end);
+                executorService.submit(innerThread);
+            }else{
+                byteBuffer.put(pMsgbuf,0,8);
+                byteBuffer.flip();
+                long start = byteBuffer.getLong();
+                byteBuffer.clear();
+                int  latency = (int)((end - start) / 1000);
+                latencyInUs[recvCount-1] = latency;
+                pMsgbuf = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (recvCount== latencyInUsLength) stop_flag = 1;
     }
 
     class InnerThread implements Runnable{

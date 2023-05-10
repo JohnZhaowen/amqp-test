@@ -7,9 +7,6 @@ import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
 import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.StatisticsUtils;
-import com.kingstar.messaging.api.ErrorInfo;
-import com.kingstar.messaging.api.KSKingMQSPI;
-import com.kingstar.messaging.api.ReConnectStatus;
 import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
@@ -19,7 +16,7 @@ import org.springframework.core.env.Environment;
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgListener {
+public class StatisticsConsumerMsgListener implements IMsgListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerMsgListener.class);
 
@@ -32,10 +29,6 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
     private volatile int[] latencyInUs;
 
     private int latencyInUsLength = 0;
-
-    private volatile boolean connect = false;
-
-    private volatile boolean subscribe = false;
 
     //初始化标识
     private volatile boolean init = false;
@@ -106,45 +99,10 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
         }
     }
 
-    @Override
-    public void OnConnected() {
-        LOG.info("OnConnected callback, sub client connected to broker!");
-        connect = true;
-    }
-
-    @Override
-    public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
-        LOG.warn("OnDisconnected callback, sub client disconnected to broker! error code:" + pErrorInfo.getErrorId() +
-                ",error msg:" + pErrorInfo.getErrorMessage());
-    }
-
-    @Override
-    public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
-        LOG.info("OnRtnSubscribe callback, sub client Subscribed success ,queue name:" + pQueue);
-        if (pErrorInfo.getErrorId() == 0) {
-            subscribe = true;
-        }
-    }
-
-    @Override
-    public void OnMessage(String routingKey, byte[] pMsgbuf,long seq_no) {
-        try {
-            if (recvCount >= latencyInUsLength) return;
-            long end = System.nanoTime();
-            AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
-            JavaStruct.unpack(packet, pMsgbuf);
-            long start = packet.getTimestampInNanos();
-            latencyInUs[recvCount++] = (int) ((end - start) / 1000);
-            if (recvCount == latencyInUsLength - 1) stop_flag = 1;
-        } catch (StructException e) {
-            LOG.error("回调消息处理异常", e);
-        }
-    }
 
     public StatisticsConsumerMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
         int warmupTime = Integer.parseInt(environment.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
-
 
         this.testCaseEnum = testCaseEnum;
         init("LatencyDaemonThread");
@@ -157,19 +115,18 @@ public class StatisticsConsumerMsgListener extends KSKingMQSPI implements IMsgLi
                 testCaseEnum.testCaseId, totalCount);
     }
 
-    public void onMsg(AmqpMessage msg) {
-
-    }
-
-    public boolean connect() {
-        return connect;
-    }
-
-    public boolean subscribe() {
-        return subscribe;
-    }
-
-    public void setSubscribe(boolean subscribe) {
-        this.subscribe = subscribe;
+    @Override
+    public void onMsg(String routingKey, byte[] pMsgbuf, long seq_no) {
+        try {
+            if (recvCount >= latencyInUsLength) return;
+            long end = System.nanoTime();
+            AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
+            JavaStruct.unpack(packet, pMsgbuf);
+            long start = packet.getTimestampInNanos();
+            latencyInUs[recvCount++] = (int) ((end - start) / 1000);
+            if (recvCount == latencyInUsLength - 1) stop_flag = 1;
+        } catch (StructException e) {
+            LOG.error("回调消息处理异常", e);
+        }
     }
 }
