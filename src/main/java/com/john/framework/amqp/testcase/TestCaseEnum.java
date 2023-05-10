@@ -24,6 +24,8 @@ public enum TestCaseEnum {
             TestContents.NON_SLOW_CONSUMER),
     /**
      * 1.5K包大小，测试1：1场景
+     *
+     * 功能测试4 + 性能测试
      */
     MKTDATA_TEST_3(
             3,
@@ -31,6 +33,10 @@ public enum TestCaseEnum {
             TestContents.PUB_1_SUB_1,
             TestContents.MSG_NON_DURABLE,
             TestContents.NON_SLOW_CONSUMER),
+
+    /**
+     * 功能测试3和4，性能测试
+     */
     MKTDATA_TEST_4(
             4,
             TestContents.MSG_SIZE_OF_1500,
@@ -66,17 +72,26 @@ public enum TestCaseEnum {
             TestContents.MSG_DURABLE,
             TestContents.SLOW_CONSUMER),
 
+    MKTDATA_TEST_9(
+            9,
+            TestContents.MSG_SIZE_OF_1500,
+            TestContents.PUB_1_SUB_2000,
+            TestContents.MSG_DURABLE,
+            TestContents.SLOW_CONSUMER),
+
     MKTDATA_TEST_10(
             10,
             TestContents.MSG_SIZE_OF_1500,
-            TestContents.PUB_1_SUB_1,
-            TestContents.MSG_DURABLE,
+            TestContents.PUB_1_SUB_2,
+            TestContents.MSG_NON_DURABLE,
             TestContents.NON_SLOW_CONSUMER),
 
-
-
-
-
+    MKTDATA_TEST_11(
+            11,
+            TestContents.MSG_SIZE_OF_1500,
+            TestContents.PUB_1_SUB_5,
+            TestContents.MSG_NON_DURABLE,
+            TestContents.NON_SLOW_CONSUMER)
 
     ;
 

@@ -58,8 +58,7 @@ public class AmqpTestApplication {
         testCaseEnum.msgSendRate = sendRate;
         String msgSize = environment.getProperty("packetsize");
 
-        if ("sub".equalsIgnoreCase(environment.getProperty("appType"))
-                || "sub10".equalsIgnoreCase(environment.getProperty("appType"))) {
+        if ("sub".equalsIgnoreCase(environment.getProperty("appType"))) {
             pubSub = new SimpleSub();
         } else if ("pub".equalsIgnoreCase(environment.getProperty("appType"))) {
             if (StringUtils.isNotBlank(msgSize)) {

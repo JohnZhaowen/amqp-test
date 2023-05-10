@@ -43,8 +43,11 @@ public interface TestContents {
 
     //pub,sub count
     int PUB_1_SUB_1 = 1;
+    int PUB_1_SUB_2 = 2;
+    int PUB_1_SUB_5 = 5;
     int PUB_1_SUB_10 = 10;
     int PUB_10_SUB_10 = 100;
+    int PUB_1_SUB_2000 = 2000;
 
     //slow consumer
     boolean SLOW_CONSUMER = true;

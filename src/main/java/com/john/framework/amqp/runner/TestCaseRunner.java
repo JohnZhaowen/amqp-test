@@ -5,7 +5,6 @@ import com.john.framework.amqp.amqp.AmqpMessage;
 import com.john.framework.amqp.amqp.IPubSub;
 import com.john.framework.amqp.amqp.NoopMsgListener;
 import com.john.framework.amqp.amqp.SlowConsumerMsgListener;
-import com.john.framework.amqp.amqp.StatisticsConsumerShortMsgListener;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.BindingKeyGenerator;
@@ -66,9 +65,6 @@ public class TestCaseRunner implements CommandLineRunner {
             case "sub":
                 doSub(testCase);
                 break;
-            case "sub10":
-                doSub10(testCase);
-                break;
             default:
                 throw new IllegalArgumentException("appType: " + appType + " is not valid.");
         }
@@ -81,11 +77,11 @@ public class TestCaseRunner implements CommandLineRunner {
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable, null);
         if (sub) {
-            if(StringUtils.isBlank(environment.getProperty("sendType"))||"ks1".equalsIgnoreCase(environment.getProperty("sendType"))){
+            if (StringUtils.isBlank(environment.getProperty("sendType")) || "ks1".equalsIgnoreCase(environment.getProperty("sendType"))) {
                 doKsPubByShortMsg(testCase);
-            }else if("ks2".equalsIgnoreCase(environment.getProperty("sendType"))){
+            } else if ("ks2".equalsIgnoreCase(environment.getProperty("sendType"))) {
                 doKsPub(testCase);
-            }else{
+            } else {
                 doPub(testCase);
             }
 
@@ -112,22 +108,6 @@ public class TestCaseRunner implements CommandLineRunner {
     }
 
 
-    /**
-     * 调用该方法的只会是sub10 就是统计分开
-     *
-     * @param testCase
-     */
-    private void doSub10(TestCaseEnum testCase) {
-        //统计sub10 固定传统计
-        pubSub.sub(BindingKeyGenerator.generateAll(),
-                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
-                testCase.durable,
-                //只选择节点5进行满消费测试
-                new StatisticsConsumerShortMsgListener(testCase,environment)
-        );
-    }
-
-
     private void doPub(TestCaseEnum testCase) {
 
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
@@ -148,7 +128,7 @@ public class TestCaseRunner implements CommandLineRunner {
             String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
             rateLimiter.acquire();
             msg.setTimestampInNanos(System.nanoTime());
-            pubSub.pub(msg,routingKey, durable);
+            pubSub.pub(msg, routingKey, durable);
             sendedCount++;
         }
         //发送endMark消息
@@ -161,12 +141,12 @@ public class TestCaseRunner implements CommandLineRunner {
         //计算总耗时 s
         double sec = usec / 1000000.0;
         //计算速率
-        double avgPkt = totalSendMsgCount/sec;
+        double avgPkt = totalSendMsgCount / sec;
         LOG.info(String.format("Send %d %d bytes packets in %d us (%.2f s), %.0f pkt/sec",
                 totalSendMsgCount, testCase.msgSize, usec, sec, avgPkt));
     }
 
-    private void doKsPub(TestCaseEnum testCase){
+    private void doKsPub(TestCaseEnum testCase) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
 
         int msgSendRate = testCase.msgSendRate;
@@ -187,7 +167,7 @@ public class TestCaseRunner implements CommandLineRunner {
 
         long tv = System.nanoTime();
 
-        for(int j=0;j<100000;j++){
+        for (int j = 0; j < 100000; j++) {
             //Thread.yield();
         }
 
@@ -195,7 +175,7 @@ public class TestCaseRunner implements CommandLineRunner {
 
         double yield_duration = (tv1 - tv) / 1000.0 / 100000.0;
         //计算发送一次需要多少 yield_num 控制速率
-        yield_num_per_message = Math.round(1000000.0 /(msgSendRate * yield_duration * 1.05));
+        yield_num_per_message = Math.round(1000000.0 / (msgSendRate * yield_duration * 1.05));
         //最低是一个
         if (yield_num_per_message < 1) yield_num_per_message = 1;
 
@@ -208,23 +188,23 @@ public class TestCaseRunner implements CommandLineRunner {
         long tv_k = tv_start;
 
         int haveSend = 0;
-        while(haveSend < totalSendMsgCount) {
+        while (haveSend < totalSendMsgCount) {
             String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
             msg.setTimestampInNanos(System.nanoTime());
-            pubSub.pub(msg,routingKey,durable);
+            pubSub.pub(msg, routingKey, durable);
             haveSend++;
             /*
              *  wait for yield_num_per_second
              */
 
-            for(int j=0;j<yield_num_per_message;j++){
+            for (int j = 0; j < yield_num_per_message; j++) {
                 //Thread.yield();
             }
 
             /**
              * 实际每1000条耗时
              */
-            if (haveSend % 1000 == 0){
+            if (haveSend % 1000 == 0) {
                 //实际每1000秒耗时
                 long tv_k_real = System.nanoTime();
 
@@ -248,13 +228,13 @@ public class TestCaseRunner implements CommandLineRunner {
         //计算总耗时 s
         double sec = usec / 1000000.0;
         //计算速率
-        double avgPkt = totalSendMsgCount/sec;
+        double avgPkt = totalSendMsgCount / sec;
         LOG.info(String.format("Send %d %dbytes packets in %d us (%.2f s), %.0f pkt/sec",
                 totalSendMsgCount, testCase.msgSize, usec, sec, avgPkt));
     }
 
 
-    private void doKsPubByShortMsg(TestCaseEnum testCase){
+    private void doKsPubByShortMsg(TestCaseEnum testCase) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
 
         int msgSendRate = testCase.msgSendRate;
@@ -271,7 +251,7 @@ public class TestCaseRunner implements CommandLineRunner {
 
         long tv = System.nanoTime();
 
-        for(int j=0;j<100000;j++){
+        for (int j = 0; j < 100000; j++) {
             //Thread.yield();
         }
 
@@ -279,7 +259,7 @@ public class TestCaseRunner implements CommandLineRunner {
 
         double yield_duration = (tv1 - tv) / 1000.0 / 100000.0;
         //计算发送一次需要多少 yield_num 控制速率
-        yield_num_per_message = Math.round(1000000.0 /(msgSendRate * yield_duration * 1.05));
+        yield_num_per_message = Math.round(1000000.0 / (msgSendRate * yield_duration * 1.05));
         //最低是一个
         if (yield_num_per_message < 1) yield_num_per_message = 1;
 
@@ -293,22 +273,22 @@ public class TestCaseRunner implements CommandLineRunner {
 
         int haveSend = 0;
         byte[] bizPacket = new byte[testCase.msgSize];
-        while(haveSend < totalSendMsgCount) {
+        while (haveSend < totalSendMsgCount) {
             String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
-            pubSub.pub(bizPacket,routingKey,durable);
+            pubSub.pub(bizPacket, routingKey, durable);
             haveSend++;
             /*
              *  wait for yield_num_per_second
              */
 
-            for(int j=0;j<yield_num_per_message;j++){
+            for (int j = 0; j < yield_num_per_message; j++) {
                 //Thread.yield();
             }
 
             /**
              * 实际每1000条耗时
              */
-            if (haveSend % 1000 == 0){
+            if (haveSend % 1000 == 0) {
                 //实际每1000秒耗时
                 long tv_k_real = System.nanoTime();
 
@@ -332,7 +312,7 @@ public class TestCaseRunner implements CommandLineRunner {
         //计算总耗时 s
         double sec = usec / 1000000.0;
         //计算速率
-        double avgPkt = totalSendMsgCount/sec;
+        double avgPkt = totalSendMsgCount / sec;
         LOG.info(String.format("Send %d %dbytes packets in %d us (%.2f s), %.0f pkt/sec",
                 totalSendMsgCount, testCase.msgSize, usec, sec, avgPkt));
         //pubSub.statistics();
