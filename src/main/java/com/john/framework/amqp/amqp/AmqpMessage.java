@@ -11,30 +11,19 @@ public class AmqpMessage implements Serializable {
     private static final long serialVersionUID = 8356611117456552686L;
 
     @StructField(order = 0)
-    private long timestampInNanos;
-
-    @StructField(order = 1)
     private byte sender;
 
-    @StructField(order = 2)
+    @StructField(order = 1)
     private long seq;
 
-    @StructField(order = 3)
+    @StructField(order = 2)
     private String md5;
 
-    @StructField(order = 4)
+    @StructField(order = 3)
     private byte[] body;
 
     public AmqpMessage(int packetSize) {
         this.body = new byte[packetSize];
-    }
-
-    public long getTimestampInNanos() {
-        return timestampInNanos;
-    }
-
-    public void setTimestampInNanos(long timestampInNanos) {
-        this.timestampInNanos = timestampInNanos;
     }
 
     public byte getSender() {

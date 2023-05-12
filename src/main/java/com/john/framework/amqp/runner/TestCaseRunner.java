@@ -1,6 +1,5 @@
 package com.john.framework.amqp.runner;
 
-import com.google.common.util.concurrent.RateLimiter;
 import com.john.framework.amqp.amqp.AmqpMessage;
 import com.john.framework.amqp.amqp.IPubSub;
 import com.john.framework.amqp.amqp.NoopMsgListener;
@@ -10,7 +9,6 @@ import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +58,7 @@ public class TestCaseRunner implements CommandLineRunner {
                 doPubsub(testCase);
                 break;
             case "pub":
-                doKsPubByShortMsg(testCase);
+                doPerfKsPub(testCase);
                 break;
             case "sub":
                 doSub(testCase);
@@ -77,12 +75,11 @@ public class TestCaseRunner implements CommandLineRunner {
                 testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
                 testCase.durable, null);
         if (sub) {
-            if (StringUtils.isBlank(environment.getProperty("sendType")) || "ks1".equalsIgnoreCase(environment.getProperty("sendType"))) {
-                doKsPubByShortMsg(testCase);
-            } else if ("ks2".equalsIgnoreCase(environment.getProperty("sendType"))) {
-                doKsPub(testCase);
-            } else {
-                doPub(testCase);
+              //如果是功能性测试 就发功能性的包
+            if ("F".equalsIgnoreCase(environment.getProperty("sendType"))) {
+                doFuncKsPub(testCase);
+            }else {
+                 doPerfKsPub(testCase);
             }
 
         }
@@ -108,55 +105,18 @@ public class TestCaseRunner implements CommandLineRunner {
     }
 
 
-    private void doPub(TestCaseEnum testCase) {
 
-        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
-
-        int msgSendRate = testCase.msgSendRate;
-        int totalSendMsgCount = msgSendRate * testTime;
-        RateLimiter rateLimiter = RateLimiter.create(msgSendRate);
-
-        AmqpMessage msg = new AmqpMessage(testCase.msgSize);
-        msg.setTestCaseId(testCase.testCaseId);
-        msg.setBody(MessageBodyGenerator.generate(msg.getBody().length));
-
-        LOG.info("start pub packet by RateLimiter");
-        int durable = testCase.durable ? 1 : 0;
-        int sendedCount = 0;
-        long tv_start = System.nanoTime();
-        while (sendedCount < totalSendMsgCount) {
-            String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
-            rateLimiter.acquire();
-            msg.setTimestampInNanos(System.nanoTime());
-            pubSub.pub(msg, routingKey, durable);
-            sendedCount++;
-        }
-        //发送endMark消息
-        //msg.setTimestampInNanos(System.nanoTime());
-        //msg.setEndMark((short) 1);
-        //pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
-        long tv_end = System.nanoTime();
-        //计算总耗时 us
-        long usec = (tv_end - tv_start) / 1000;
-        //计算总耗时 s
-        double sec = usec / 1000000.0;
-        //计算速率
-        double avgPkt = totalSendMsgCount / sec;
-        LOG.info(String.format("Send %d %d bytes packets in %d us (%.2f s), %.0f pkt/sec",
-                totalSendMsgCount, testCase.msgSize, usec, sec, avgPkt));
-    }
-
-    private void doKsPub(TestCaseEnum testCase) {
+    //功能性测试发包 包体为 AmqpMessage
+    private void doFuncKsPub(TestCaseEnum testCase) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
 
         int msgSendRate = testCase.msgSendRate;
         int totalSendMsgCount = msgSendRate * testTime;
 
         AmqpMessage msg = new AmqpMessage(testCase.msgSize);
-        msg.setTestCaseId(testCase.testCaseId);
         msg.setBody(MessageBodyGenerator.generate(msg.getBody().length));
 
-        LOG.info("start pub packet by kingstar");
+        LOG.info("start Func pub packet by kingstar");
         int durable = testCase.durable ? 1 : 0;
 
         //每发送一条要等待多少yield （忽略发送的时间消耗）
@@ -190,7 +150,6 @@ public class TestCaseRunner implements CommandLineRunner {
         int haveSend = 0;
         while (haveSend < totalSendMsgCount) {
             String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
-            msg.setTimestampInNanos(System.nanoTime());
             pubSub.pub(msg, routingKey, durable);
             haveSend++;
             /*
@@ -234,15 +193,14 @@ public class TestCaseRunner implements CommandLineRunner {
     }
 
 
-    private void doKsPubByShortMsg(TestCaseEnum testCase) {
+    private void doPerfKsPub(TestCaseEnum testCase) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
 
         int msgSendRate = testCase.msgSendRate;
         int totalSendMsgCount = msgSendRate * testTime;
 
-
         int durable = testCase.durable ? 1 : 0;
-        LOG.info("start pub packet by kingstar");
+        LOG.info("start performance pub packet by kingstar");
         //每发送一条要等待多少yield （忽略发送的时间消耗）
         long yield_num_per_message;
 

@@ -9,8 +9,8 @@ public class SimpleSub implements IPubSub {
     private static final Logger logger = LoggerFactory.getLogger(SimpleSub.class);
 
     @Override
-    public boolean pub(AmqpMessage msg, String exch, int persist) {
-        return false;
+    public void pub(AmqpMessage msg, String exch, int persist) {
+
     }
 
     @Override

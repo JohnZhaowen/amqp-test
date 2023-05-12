@@ -117,16 +117,6 @@ public class StatisticsConsumerMsgListener implements IMsgListener {
 
     @Override
     public void onMsg(String routingKey, byte[] pMsgbuf, long seq_no) {
-        try {
-            if (recvCount >= latencyInUsLength) return;
-            long end = System.nanoTime();
-            AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
-            JavaStruct.unpack(packet, pMsgbuf);
-            long start = packet.getTimestampInNanos();
-            latencyInUs[recvCount++] = (int) ((end - start) / 1000);
-            if (recvCount == latencyInUsLength - 1) stop_flag = 1;
-        } catch (StructException e) {
-            LOG.error("回调消息处理异常", e);
-        }
+
     }
 }

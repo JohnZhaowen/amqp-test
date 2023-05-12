@@ -89,23 +89,12 @@ public class PubSubStatistics implements IPubSub {
     }
 
     @Override
-    public void statistics() {
-        try {
-            report();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public boolean pub(AmqpMessage msg, String routingKey, int persist) {
+    public void pub(AmqpMessage msg, String routingKey, int persist) {
         try {
             byte[] send = JavaStruct.pack(msg);
             ksKingMQ.publish(routingKey, send, persist);
-            return true;
         } catch (StructException e) {
             e.printStackTrace();
-            return false;
         }
     }
 

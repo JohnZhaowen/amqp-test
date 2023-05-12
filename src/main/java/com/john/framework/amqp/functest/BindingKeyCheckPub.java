@@ -23,11 +23,8 @@ public class BindingKeyCheckPub implements IPubSub {
 
 
     @Override
-    public boolean pub(AmqpMessage msg, String routingKey, int persist) {
-
+    public void pub(AmqpMessage msg, String routingKey, int persist) {
         countStatistics(routingKey);
-
-        return false;
     }
 
     private void countStatistics(String routingKey) {
