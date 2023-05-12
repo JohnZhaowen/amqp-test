@@ -57,7 +57,7 @@ public class SimpleSub implements IPubSub {
                     QueueType queueType = new QueueType();
                     queueType.setDurable(durable ? 1 : 0);
                     queueType.setBindingKey(bindingKeys[i]);
-                    queueType.setOffset(0);
+                    queueType.setOffset(-1);
                     queueType.setQueue(queue);
                     reqSubscribeField.setElems(queueType);
                     APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
