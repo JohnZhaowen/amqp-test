@@ -41,7 +41,6 @@ public class PubSubStatistics implements IPubSub {
 
 
     volatile long[] rtt;
-    volatile int rtt_count = 0;
 
     public PubSubStatistics(TestCaseEnum testCaseEnum,Environment environment) {
         this.environment = environment;
@@ -63,9 +62,9 @@ public class PubSubStatistics implements IPubSub {
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         String sendType = environment.getProperty("sendType");
         if(StringUtils.isBlank(sendType)||"ks1".equalsIgnoreCase(sendType)){
-            ksKingMQServerAPI = new KSKingMQServerAPI(new StatisticsConsumerShortMsgListener(testCaseEnum,environment));
+            ksKingMQServerAPI = new KSKingMQServerAPI(new PerfStatisticsConsumerLittleMsgListener(testCaseEnum,environment));
         }else{
-            ksKingMQServerAPI = new KSKingMQServerAPI(new StatisticsConsumerMsgListener(testCaseEnum,environment));
+            ksKingMQServerAPI = new KSKingMQServerAPI(new FuncStatisticsConsumerMsgListener(testCaseEnum,environment));
         }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);

@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * 该监听器用于统计延时信息
  */
-public class StatisticsConsumerShortMsgListener implements IMsgListener{
+public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
 
-    private static final Logger LOG = LoggerFactory.getLogger(StatisticsConsumerShortMsgListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PerfStatisticsConsumerBigMsgListener.class);
 
     private int totalCount;
 
@@ -46,8 +46,6 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
 
     private TestCaseEnum testCaseEnum = null;
 
-    private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
-
     //解压用的buffer
     private volatile ByteBuffer unzipByteBuffer = ByteBuffer.allocateDirect(8);
 
@@ -55,9 +53,6 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
     private Thread latencyThread=null;
 
     private List<Integer> latencyInUsList = new CopyOnWriteArrayList<>();
-
-    volatile long[] rtt;
-    volatile int rtt_count = 0;
 
     //使用单线程解压
     private ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -84,20 +79,9 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
                     //计算时延
                     try {
                         Thread.sleep(1000);
-                        if(testCaseEnum.testCaseId==2){
-                            while (latencyInUsList.size()<totalCount){
-                                LOG.info("current finish: [{}/{}/{}]", latencyInUsList.size(),recvCount, totalCount);
-                                Thread.sleep(1000);
-                            }
-                        }else{
-                            while (stop_flag == 0){
-                                if(recvCount==0){
-                                    LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount], recvCount, totalCount);
-                                }else{
-                                    LOG.info("current Latency [{}]us,current finish: [{}/{}]",latencyInUs[recvCount-1], recvCount, totalCount);
-                                }
-                                Thread.sleep(1000);
-                            }
+                        while (latencyInUsList.size()<totalCount){
+                            LOG.info("current finish: [{}/{}/{}]", latencyInUsList.size(),recvCount, totalCount);
+                            Thread.sleep(1000);
                         }
                         LOG.info("current finish: [{}/{}/{}]", latencyInUsList.size(),recvCount, totalCount);
                         executorService.awaitTermination(10, TimeUnit.SECONDS);
@@ -105,14 +89,9 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
                         //report();
                         //所有消息已经接收完毕，则开始进行统计
                         int[] recvLatencies = new int[recvCount- warmupCount];
-                        if(testCaseEnum.testCaseId==2){
-                            Integer[] dest = latencyInUsList.toArray(new Integer[latencyInUsList.size()]);
-                            int[] res = Arrays.stream(dest).mapToInt(Integer::valueOf).toArray();
-                            System.arraycopy(res, warmupCount, recvLatencies, 0, recvLatencies.length);
-                        }else{
-                            System.arraycopy(latencyInUs, warmupCount, recvLatencies, 0, recvLatencies.length);
-                        }
-
+                        Integer[] dest = latencyInUsList.toArray(new Integer[latencyInUsList.size()]);
+                        int[] res = Arrays.stream(dest).mapToInt(Integer::valueOf).toArray();
+                        System.arraycopy(res, warmupCount, recvLatencies, 0, recvLatencies.length);
                         latencyInUs = null;
                         //统计数据，一个测试用例生产一个统计数据
                         int[] rawLatencies = MathUils.split(recvLatencies, TestContents.LATENCY_RAW_BATCHES);
@@ -120,7 +99,6 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
                             CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_RAW_FILENAME,
                                     new TestRawData(testCaseEnum.testCaseId, testCaseEnum.msgSendRate, rawLatency).toStringArr());
                         }
-
                         TestStatistics statistics = StatisticsUtils.cal(recvLatencies, testCaseEnum.testCaseId, testCaseEnum.msgSendRate);
                         CsvUtils.writeCsvWithOneLine(TestContents.LATENCY_STATISTICS_FILENAME, statistics.toStringArr());
                         LOG.info("testCase [{}] run finished, result: [{}]", testCaseEnum.testCaseId, statistics);
@@ -137,38 +115,7 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
         }
     }
 
-    //根据平均速度计算
-    private void report() {
-
-        double avg=0.0;
-        //copy 数组
-        Arrays.sort(rtt, 0, rtt.length);
-
-        int longLatencyCount = 0;
-        int subLength = rtt.length;
-        for(int i = 0; i < subLength; i++) {
-            avg += rtt[i];
-            if(rtt[i]>1000){
-                longLatencyCount++;
-            }
-        }
-
-        avg /= (double)subLength;
-
-        double stdDev = MathUtils.calStdDev(avg,rtt);
-
-        System.out.printf("java OnMsg:min = %d, max=%d avg=%.0f%n", rtt[0],rtt[subLength-1], avg);
-        System.out.printf("999pcnt = %d%n", rtt[(int) (subLength * 0.999)]);
-        System.out.printf("99pcnt = %d%n", rtt[(int) (subLength * 0.99)]);
-        System.out.printf("95pcnt = %d%n", rtt[(int) (subLength * 0.95)]);
-        System.out.printf("90pcnt = %d%n", rtt[(int) (subLength * 0.90)]);
-        System.out.printf("50pcnt = %d%n", rtt[(int) (subLength * 0.50)]);
-
-        System.out.println("stdDev ="+stdDev);
-        System.out.println("longLatencyCount="+longLatencyCount);
-    }
-
-    public StatisticsConsumerShortMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
+    public PerfStatisticsConsumerBigMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
         int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
         int warmupTime = Integer.parseInt(environment.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
 
@@ -180,7 +127,6 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
         totalCount = testCaseEnum.msgSendRate * testTime;
         warmupCount = testCaseEnum.msgSendRate * warmupTime;
         latencyInUs = new int[totalCount];
-        rtt = new long[totalCount];
         latencyInUsLength = latencyInUs.length;
         LOG.info("listener build for testCase: [{}], should send [{}] packets.",
                 testCaseEnum.testCaseId, totalCount);
@@ -196,14 +142,6 @@ public class StatisticsConsumerShortMsgListener implements IMsgListener{
             if(Snappy.isValidCompressedBuffer(pMsgbuf)){
                 InnerThread innerThread = new InnerThread(pMsgbuf,end);
                 executorService.submit(innerThread);
-            }else{
-                byteBuffer.put(pMsgbuf,0,8);
-                byteBuffer.flip();
-                long start = byteBuffer.getLong();
-                byteBuffer.clear();
-                int  latency = (int)((end - start) / 1000);
-                latencyInUs[recvCount-1] = latency;
-                pMsgbuf = null;
             }
         } catch (IOException e) {
             e.printStackTrace();
