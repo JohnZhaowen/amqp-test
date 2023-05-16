@@ -77,8 +77,9 @@ public class TestCaseRunner implements CommandLineRunner {
     private void doPubsub(TestCaseEnum testCase) {
         //全部订阅
         String[] bindingKeys = BindingKeyGenerator.generateAll();
+        String queueId = StringUtils.isNotBlank(environment.getProperty("uniqueId"))? environment.getProperty("uniqueId"):uniqueId+"";
         boolean sub = pubSub.sub(bindingKeys,
-                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + queueId : TestContents.NONDURABLE_QUEUE_PREFIX + queueId,
                 testCase.durable, null);
         if (sub) {
             if(StringUtils.isBlank(environment.getProperty("sendType"))||"ks1".equalsIgnoreCase(environment.getProperty("sendType"))){
@@ -103,8 +104,10 @@ public class TestCaseRunner implements CommandLineRunner {
         bindingKeys[0] = BindingKeyGenerator.generateEndMark();
         bindingKeys[1] = BindingKeyGenerator.generate();
 
+        String queueId = StringUtils.isNotBlank(environment.getProperty("uniqueId"))? environment.getProperty("uniqueId"):uniqueId+"";
+
         pubSub.sub(bindingKeys,
-                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + queueId : TestContents.NONDURABLE_QUEUE_PREFIX + queueId,
                 testCase.durable,
                 //只选择节点5进行满消费测试
                 testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener()
@@ -119,8 +122,9 @@ public class TestCaseRunner implements CommandLineRunner {
      */
     private void doSub10(TestCaseEnum testCase) {
         //统计sub10 固定传统计
+        String queueId = StringUtils.isNotBlank(environment.getProperty("uniqueId"))? environment.getProperty("uniqueId"):uniqueId+"";
         pubSub.sub(BindingKeyGenerator.generateAll(),
-                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + queueId : TestContents.NONDURABLE_QUEUE_PREFIX + queueId,
                 testCase.durable,
                 //只选择节点5进行满消费测试
                 new PerformanceStatisticsConsumerMsgListener(testCase,environment)
