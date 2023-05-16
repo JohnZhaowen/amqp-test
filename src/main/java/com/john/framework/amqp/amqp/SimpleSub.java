@@ -1,12 +1,15 @@
 package com.john.framework.amqp.amqp;
 
+import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
 import com.kingstar.messaging.api.KSKingMQSPI;
 import com.kingstar.messaging.api.QueueType;
 import com.kingstar.messaging.api.ReqSubscribeField;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 public class SimpleSub implements IPubSub {
 
@@ -26,6 +29,15 @@ public class SimpleSub implements IPubSub {
 
     private volatile boolean init = false;
 
+    private TestCaseEnum testCaseEnum;
+
+    private Environment environment;
+
+    public SimpleSub(TestCaseEnum testCaseEnum, Environment environment) {
+        this.testCaseEnum = testCaseEnum;
+        this.environment = environment;
+    }
+
     @Override
     public void init() {
         if (init) {
@@ -40,6 +52,10 @@ public class SimpleSub implements IPubSub {
     @Override
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
         KSKingMQSPI ksKingMQSPI = (KSKingMQSPI) listener;
+        String apiId =environment.getProperty("apiId");
+        if(StringUtils.isNotBlank(apiId)){
+            ksKingMQ.OverrideParameter("ApiId",apiId);
+        }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQSPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {

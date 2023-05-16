@@ -118,6 +118,7 @@ public class KSKingMQAPIJNI {
   public final static native int KSKingMQ_ConnectServer(long jarg1, KSKingMQ jarg1_, long jarg2, KSKingMQSPI jarg2_);
   public final static native int KSKingMQ_ReqSubscribe(long jarg1, KSKingMQ jarg1_, long jarg2, ReqSubscribeField jarg2_);
   public final static native int KSKingMQ_publish(long jarg1, KSKingMQ jarg1_, String jarg2, byte[] jarg3, int jarg5);
+  public final static native void KSKingMQ_OverrideParameter(long jarg1, KSKingMQ jarg1_, String jarg2, String jarg3);
   public final static native long new_KSKingMQ();
   public final static native void KSKingMQ_director_connect(KSKingMQ obj, long cptr, boolean mem_own, boolean weak_global);
   public final static native void KSKingMQ_change_ownership(KSKingMQ obj, long cptr, boolean take_or_release);
@@ -142,6 +143,9 @@ public class KSKingMQAPIJNI {
   }
   public static int SwigDirector_KSKingMQ_publish(KSKingMQ jself, String routingKey, byte[] pMsgbuf, int durable) {
     return (jself.publish(routingKey, pMsgbuf, durable)).swigValue();
+  }
+  public static void SwigDirector_KSKingMQ_OverrideParameter(KSKingMQ jself, String key, String value) {
+    jself.OverrideParameter(key, value);
   }
 
   private final static native void swig_module_init();

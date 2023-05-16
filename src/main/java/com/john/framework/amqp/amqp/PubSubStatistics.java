@@ -70,6 +70,10 @@ public class PubSubStatistics implements IPubSub {
             ksKingMQSPI = new FunctionalStatisticsConsumerMsgListener(testCaseEnum,environment);
         }
         KSKingMQSPI mqspi = (KSKingMQSPI)ksKingMQSPI;
+        String apiId =environment.getProperty("apiId");
+        if(StringUtils.isNotBlank(apiId)){
+            ksKingMQ.OverrideParameter("ApiId",apiId);
+        }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(mqspi);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {

@@ -76,6 +76,10 @@ public class KSKingMQ {
     return APIResult.swigToEnum(KSKingMQAPIJNI.KSKingMQ_publish(swigCPtr, this, routingKey, pMsgbuf, durable));
   }
 
+  public void OverrideParameter(String key, String value) {
+    KSKingMQAPIJNI.KSKingMQ_OverrideParameter(swigCPtr, this, key, value);
+  }
+
   public KSKingMQ() {
     this(KSKingMQAPIJNI.new_KSKingMQ(), true);
     KSKingMQAPIJNI.KSKingMQ_director_connect(this, swigCPtr, true, true);

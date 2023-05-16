@@ -60,7 +60,7 @@ public class AmqpTestApplication {
 
         if("sub".equalsIgnoreCase(environment.getProperty("appType"))
                 ||"sub10".equalsIgnoreCase(environment.getProperty("appType"))){
-            pubSub = new SimpleSub();
+            pubSub = new SimpleSub(testCaseEnum,environment);
         }else if("pub".equalsIgnoreCase(environment.getProperty("appType"))){
             if(StringUtils.isNotBlank(msgSize)){
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);
