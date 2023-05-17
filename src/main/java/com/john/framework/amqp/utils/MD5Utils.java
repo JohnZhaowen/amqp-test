@@ -23,7 +23,26 @@ public class MD5Utils {
         }
     }
 
-    private static String converBytes2HexStr(byte[] bytes) {
+
+    public static byte[] md5ForByte(byte[] srcBytes) {
+
+        MessageDigest md5 = null;
+        try {
+            md5 = MessageDigest.getInstance("MD5");
+            byte[] digestBytes = md5.digest(srcBytes);
+            /**
+             * 当srcBytes较大时：可以将srcBytes进行切分，然后循环update
+             * md5.update(srcBytes);
+             * md5.digest();
+             */
+            //md5 hex string: 4ff1dfc5c3f2f3ebc03a7747b6453597
+            return digestBytes;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String converBytes2HexStr(byte[] bytes) {
 
         StringBuilder res = new StringBuilder();
         for (byte b : bytes) {

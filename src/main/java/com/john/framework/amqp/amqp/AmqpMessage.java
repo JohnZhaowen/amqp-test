@@ -17,13 +17,22 @@ public class AmqpMessage implements Serializable {
     private long seq;
 
     @StructField(order = 2)
-    private String md5;
+    private byte[] md5 =new byte[16];
 
+    //1代表结束
     @StructField(order = 3)
+    private byte endMark = 0;
+
+    //在发送结束报文时 带上发送的总数量
+    @StructField(order = 4)
+    private int total = 0;
+
+    @StructField(order = 5)
     private byte[] body;
 
     public AmqpMessage(int packetSize) {
-        this.body = new byte[packetSize];
+        //long 算8位，md5算16
+        this.body = new byte[packetSize-30];
     }
 
     public byte getSender() {
@@ -42,12 +51,28 @@ public class AmqpMessage implements Serializable {
         this.seq = seq;
     }
 
-    public String getMd5() {
+    public byte[] getMd5() {
         return md5;
     }
 
-    public void setMd5(String md5) {
+    public void setMd5(byte[] md5) {
         this.md5 = md5;
+    }
+
+    public byte getEndMark() {
+        return endMark;
+    }
+
+    public void setEndMark(byte endMark) {
+        this.endMark = endMark;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
     }
 
     public byte[] getBody() {

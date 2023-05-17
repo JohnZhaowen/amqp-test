@@ -1,7 +1,7 @@
 package com.john.framework.amqp;
 
 import com.john.framework.amqp.amqp.IPubSub;
-import com.john.framework.amqp.amqp.PubSubStatistics;
+import com.john.framework.amqp.amqp.StatisticsPubSub;
 import com.john.framework.amqp.amqp.SimplePub;
 import com.john.framework.amqp.amqp.SimpleSub;
 import com.john.framework.amqp.testcase.TestCaseEnum;
@@ -40,13 +40,6 @@ public class AmqpTestApplication {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        //pressAnyKey("Press any key to stop..");
-    }
-
-
-    private static void pressAnyKey(String hint) {
-        System.out.println(hint);
-        scanner.nextLine();
     }
 
     @Bean
@@ -54,22 +47,24 @@ public class AmqpTestApplication {
         IPubSub pubSub;
         int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
         int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
+        String appType = Objects.requireNonNull(environment.getProperty("appType"));
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
         testCaseEnum.msgSendRate = sendRate;
         String msgSize = environment.getProperty("packetsize");
 
-        if ("sub".equalsIgnoreCase(environment.getProperty("appType"))) {
-            pubSub = new SimpleSub();
-        } else if ("pub".equalsIgnoreCase(environment.getProperty("appType"))) {
+        if ("sub".equalsIgnoreCase(appType)) {
+            pubSub = new SimpleSub(testCaseEnum,environment);
+        } else if ("pub".equalsIgnoreCase(appType)) {
             if (StringUtils.isNotBlank(msgSize)) {
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);
             }
             pubSub = new SimplePub(testCaseEnum, environment);
-        } else if ("pubsub".equalsIgnoreCase(environment.getProperty("appType"))) {
+        } else if ("pubsub".equalsIgnoreCase(appType)) {
+            if(testCaseId>8) throw new RuntimeException("appType=pubsub仅适用于 小于或等于8的案例！");
             if (StringUtils.isNotBlank(msgSize)) {
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);
             }
-            pubSub = new PubSubStatistics(testCaseEnum, environment);
+            pubSub = new StatisticsPubSub(testCaseEnum, environment);
         } else {
             return null;
         }

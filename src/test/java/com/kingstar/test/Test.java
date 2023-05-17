@@ -15,11 +15,9 @@ public class Test {
 
     public static void main(String[] args) throws StructException {
         AmqpMessage amqpMessage = new AmqpMessage(1500);
-        amqpMessage.setTestCaseId(1);
         amqpMessage.setBody(MessageBodyGenerator.generate(amqpMessage.getBody().length));
         long start = System.nanoTime();
         for(int i=0;i<10000;i++){
-            amqpMessage.setTimestampInNanos(System.nanoTime());
             byte[] bytes = JavaStruct.pack(amqpMessage);
             AmqpMessage amqpMessage1 = new AmqpMessage(bytes.length);
             JavaStruct.unpack(amqpMessage1,bytes);

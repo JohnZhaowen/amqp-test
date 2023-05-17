@@ -1,8 +1,13 @@
 package com.john.framework.amqp.amqp;
 
+import com.john.framework.amqp.testcase.TestCaseEnum;
+import com.john.framework.amqp.utils.CsvUtils;
+import com.john.framework.amqp.utils.FileUtils;
 import com.kingstar.messaging.api.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 public class SimpleSub implements IPubSub {
 
@@ -22,6 +27,15 @@ public class SimpleSub implements IPubSub {
 
     private volatile boolean init = false;
 
+    private TestCaseEnum testCaseEnum;
+
+    private Environment environment;
+
+    public SimpleSub(TestCaseEnum testCaseEnum, Environment environment) {
+        this.testCaseEnum = testCaseEnum;
+        this.environment = environment;
+    }
+
     @Override
     public void init() {
         if (init) {
@@ -37,6 +51,10 @@ public class SimpleSub implements IPubSub {
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
 
         KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(listener);
+        String apiId =environment.getProperty("apiId");
+        if(StringUtils.isNotBlank(apiId)){
+            ksKingMQ.OverrideParameter("ApiId",apiId);
+        }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
@@ -54,7 +72,17 @@ public class SimpleSub implements IPubSub {
                     QueueType queueType = new QueueType();
                     queueType.setDurable(durable ? 1 : 0);
                     queueType.setBindingKey(bindingKeys[i]);
-                    queueType.setOffset(0);
+                    //关于offset的设置问题 只有功能性测试+持久化的前提下 才会有读offset的问题
+                    //功能性测试以大于9 为约定
+                    //offset值说明 -1代表连接上后从连接处消费，0代表从头开始消费，其他大于0的值代表 从断点处消费
+                    if(testCaseEnum.testCaseId>=9&&durable){
+                        String fileName = queue+".txt";
+                        long seq_no = FileUtils.readSeqNo(fileName);
+                        logger.info("read csv name:{},queue name:{},seq_no:{}",fileName,queue,seq_no);
+                        queueType.setOffset((int)seq_no);
+                    }else{
+                        queueType.setOffset(-1);
+                    }
                     queueType.setQueue(queue);
                     reqSubscribeField.setElems(queueType);
                     APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
@@ -65,7 +93,9 @@ public class SimpleSub implements IPubSub {
                     }
                     while (true) {
                         if (ksKingMQServerAPI.subscribe()) {
-                            if (i != 9) {
+                            logger.warn("req Subscribing success! Subscribe queue name:{},bindKey:{}",
+                                    queue, bindingKeys[i]);
+                            if (i != bindingKeys.length-1) {
                                 //重置
                                 ksKingMQServerAPI.setSubscribe(false);
                             }

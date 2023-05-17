@@ -14,6 +14,9 @@ public interface TestContents {
     String NONDURABLE_QUEUE_PREFIX = "90000";
     String DURABLE_QUEUE_PREFIX = "10000";
 
+    String SEND_TYPE_FUNC="F";
+    String SEND_TYPE_PERF="P";
+
     String LATENCY_STATISTICS_FILENAME = "./latency_statistics.csv";
     String LATENCY_RAW_FILENAME = "./latency_raw.csv";
     int  LATENCY_RAW_BATCHES = 3000;
@@ -48,6 +51,8 @@ public interface TestContents {
     int PUB_1_SUB_10 = 10;
     int PUB_10_SUB_10 = 100;
     int PUB_1_SUB_2000 = 2000;
+
+    int PUB_2_SUB_1 = 1;
 
     //slow consumer
     boolean SLOW_CONSUMER = true;

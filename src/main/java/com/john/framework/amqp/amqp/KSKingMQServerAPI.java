@@ -23,6 +23,8 @@ public class KSKingMQServerAPI extends KSKingMQSPI implements KSKingMQServerStat
 
     private IMsgListener msgListener;
 
+    private volatile String queueName;
+
     public KSKingMQServerAPI(IMsgListener msgListener) {
         Objects.requireNonNull(msgListener);
         this.msgListener = msgListener;
@@ -36,16 +38,18 @@ public class KSKingMQServerAPI extends KSKingMQSPI implements KSKingMQServerStat
 
     @Override
     public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
-        logger.warn("OnDisconnected callback, sub client disconnected to broker! error code:"+pErrorInfo.getErrorId()+
-                ",error msg:"+pErrorInfo.getErrorMessage());
+        logger.warn("OnDisconnected callback, sub client disconnected to broker! error code:{},errMsg:{}",
+                pErrorInfo.getErrorId(),pErrorInfo.getErrorMessage());
     }
 
     @Override
     public void OnRtnSubscribe(String pQueue, ErrorInfo pErrorInfo) {
-        logger.info("OnRtnSubscribe callback, sub client Subscribed success ,queue name:"+pQueue);
         if(pErrorInfo.getErrorId()==0){
             subscribe = true;
-        }
+            queueName = pQueue;
+        }else
+            logger.error("OnRtnSubscribe callback, sub client Subscribed failed ,queue name:{},error id:{},errMsg:{}",
+                    pQueue,pErrorInfo.getErrorId(),pErrorInfo.getErrorMessage());
     }
 
     @Override

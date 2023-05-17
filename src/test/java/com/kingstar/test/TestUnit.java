@@ -1,5 +1,10 @@
 package com.kingstar.test;
 
+import com.john.framework.amqp.amqp.AmqpMessage;
+import com.john.framework.amqp.utils.MD5Utils;
+import com.john.framework.amqp.utils.MessageBodyGenerator;
+import com.kingstar.struct.JavaStruct;
+import com.kingstar.struct.StructException;
 import org.junit.Test;
 import org.xerial.snappy.Snappy;
 
@@ -38,9 +43,47 @@ public class TestUnit {
     }
 
     @Test
+    public void test3(){
+        System.out.println(byteBuffer.getLong());
+    }
+
+    @Test
     public void test1(){
         int i=0;
         i++;
         System.out.println(i);
+    }
+
+    @Test
+    public void test4(){
+        AmqpMessage amqpMessage =new AmqpMessage(1500);
+
+        amqpMessage.setSeq(1);
+        amqpMessage.setSender((byte)1);
+        amqpMessage.setBody(MessageBodyGenerator.generate(amqpMessage.getBody().length));
+        amqpMessage.setMd5(MD5Utils.md5ForByte(amqpMessage.getBody()));
+        byte[] pack = null;
+        try {
+            pack = JavaStruct.pack(amqpMessage);
+        } catch (StructException e) {
+            e.printStackTrace();
+        }
+
+        AmqpMessage amqpMessage1 =new AmqpMessage(pack.length);
+        try {
+            JavaStruct.unpack(amqpMessage1,pack);
+            System.out.println(amqpMessage1.getSeq()==amqpMessage.getSeq());
+        } catch (StructException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test5(){
+        byte[]  md1= new byte[1500-134];
+        byte[] md2 = MessageBodyGenerator.generate(md1.length);
+        System.out.println(md2.length);
+        byte[] md3 = MD5Utils.md5ForByte(md2);
+        System.out.println(md3.length);
     }
 }

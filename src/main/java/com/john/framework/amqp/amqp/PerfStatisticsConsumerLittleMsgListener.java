@@ -5,6 +5,7 @@ import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.testcase.TestRawData;
 import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
+import com.john.framework.amqp.utils.EnvironmentUtils;
 import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.MathUtils;
 import com.john.framework.amqp.utils.StatisticsUtils;
@@ -52,7 +53,6 @@ public class PerfStatisticsConsumerLittleMsgListener implements IMsgListener{
     private Thread latencyThread=null;
 
     volatile long[] rtt;
-    volatile int rtt_count = 0;
 
     private void init(String threadName){
         if(init){
@@ -61,7 +61,7 @@ public class PerfStatisticsConsumerLittleMsgListener implements IMsgListener{
         }
         this.startLatencyDaemonThread(threadName);
         init = true;
-        LOG.info("LatencyDaemonThread init end...");
+        LOG.info("PerfLittleThread init end...");
     }
 
     private void startLatencyDaemonThread(String threadName){
@@ -111,44 +111,12 @@ public class PerfStatisticsConsumerLittleMsgListener implements IMsgListener{
         }
     }
 
-    //根据平均速度计算
-    private void report() {
 
-        double avg=0.0;
-        //copy 数组
-        Arrays.sort(rtt, 0, rtt.length);
-
-        int longLatencyCount = 0;
-        int subLength = rtt.length;
-        for(int i = 0; i < subLength; i++) {
-            avg += rtt[i];
-            if(rtt[i]>1000){
-                longLatencyCount++;
-            }
-        }
-
-        avg /= (double)subLength;
-
-        double stdDev = MathUtils.calStdDev(avg,rtt);
-
-        System.out.printf("java OnMsg:min = %d, max=%d avg=%.0f%n", rtt[0],rtt[subLength-1], avg);
-        System.out.printf("999pcnt = %d%n", rtt[(int) (subLength * 0.999)]);
-        System.out.printf("99pcnt = %d%n", rtt[(int) (subLength * 0.99)]);
-        System.out.printf("95pcnt = %d%n", rtt[(int) (subLength * 0.95)]);
-        System.out.printf("90pcnt = %d%n", rtt[(int) (subLength * 0.90)]);
-        System.out.printf("50pcnt = %d%n", rtt[(int) (subLength * 0.50)]);
-
-        System.out.println("stdDev ="+stdDev);
-        System.out.println("longLatencyCount="+longLatencyCount);
-    }
-
-    public PerfStatisticsConsumerLittleMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
-        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
-        int warmupTime = Integer.parseInt(environment.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
-
-
+    public PerfStatisticsConsumerLittleMsgListener(TestCaseEnum testCaseEnum) {
+        int testTime = EnvironmentUtils.getTestTime();
+        int warmupTime = EnvironmentUtils.getWarmupTime();
         this.testCaseEnum = testCaseEnum;
-        init("LatencyDaemonThread");
+        init("PerfLittleThread");
         LOG.info("测试用例详情:{}",testCaseEnum.toString());
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * testTime;

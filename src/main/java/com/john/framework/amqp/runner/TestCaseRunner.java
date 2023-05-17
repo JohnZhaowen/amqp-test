@@ -1,14 +1,22 @@
 package com.john.framework.amqp.runner;
 
 import com.john.framework.amqp.amqp.AmqpMessage;
+import com.john.framework.amqp.amqp.IMsgListener;
 import com.john.framework.amqp.amqp.IPubSub;
 import com.john.framework.amqp.amqp.NoopMsgListener;
 import com.john.framework.amqp.amqp.SlowConsumerMsgListener;
+import com.john.framework.amqp.functest.TestCase10ConsumerMsgListener;
+import com.john.framework.amqp.functest.TestCase11ConsumerMsgListener;
+import com.john.framework.amqp.functest.TestCase12ConsumerMsgListener;
+import com.john.framework.amqp.functest.TestCase9ConsumerMsgListener;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.BindingKeyGenerator;
+import com.john.framework.amqp.utils.EnvironmentUtils;
+import com.john.framework.amqp.utils.MD5Utils;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +47,8 @@ public class TestCaseRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
-
+        int testCaseId = EnvironmentUtils.getTestCaseId();
         LOG.info("run env: uniqueId[{}], appType[{}], testCaseId[{}]", uniqueId, appType, testCaseId);
-
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
         runTestCases(testCaseEnum);
     }
@@ -58,7 +64,7 @@ public class TestCaseRunner implements CommandLineRunner {
                 doPubsub(testCase);
                 break;
             case "pub":
-                doPerfKsPub(testCase);
+                doFuncKsPub(testCase,(byte)EnvironmentUtils.getSender());
                 break;
             case "sub":
                 doSub(testCase);
@@ -71,16 +77,10 @@ public class TestCaseRunner implements CommandLineRunner {
     private void doPubsub(TestCaseEnum testCase) {
         //全部订阅
         String[] bindingKeys = BindingKeyGenerator.generateAll();
-        boolean sub = pubSub.sub(bindingKeys,
-                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
-                testCase.durable, null);
+        boolean sub = pubSub.sub(bindingKeys, EnvironmentUtils.getQueueName(testCase), testCase.durable, null);
         if (sub) {
-              //如果是功能性测试 就发功能性的包
-            if ("F".equalsIgnoreCase(environment.getProperty("sendType"))) {
-                doFuncKsPub(testCase);
-            }else {
-                 doPerfKsPub(testCase);
-            }
+              //如果是pub sub一起的就当作是性能测试，功能测试 pub sub分开统计
+            doPerfKsPub(testCase);
 
         }
     }
@@ -92,29 +92,57 @@ public class TestCaseRunner implements CommandLineRunner {
      */
     private void doSub(TestCaseEnum testCase) {
         //只订阅2种 一种是根testCase选择
-        String[] bindingKeys = new String[2];
-        bindingKeys[0] = BindingKeyGenerator.generateEndMark();
-        bindingKeys[1] = BindingKeyGenerator.generate();
-
+        String[] bindingKeys = null;
+        IMsgListener msgListener = null;
+        if(testCase.testCaseId<=8){
+            bindingKeys = new String[2];
+            bindingKeys[0] = BindingKeyGenerator.generateEndMark();
+            bindingKeys[1] = BindingKeyGenerator.generate();
+            msgListener = testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener();
+        }else if(testCase.testCaseId==9){
+            //保证都能收到
+            bindingKeys = BindingKeyGenerator.generateAll();
+            msgListener = new TestCase9ConsumerMsgListener(testCase);
+        }else if(testCase.testCaseId == 10){
+            //只保证匹配到的都能收到
+            bindingKeys = new String[2];
+            bindingKeys[0] = BindingKeyGenerator.generateEndMark();
+            bindingKeys[1] = BindingKeyGenerator.generate();
+            msgListener = new TestCase10ConsumerMsgListener(testCase);
+        }else if(testCase.testCaseId == 11){
+            //保证都能收到
+            bindingKeys = BindingKeyGenerator.generateAll();
+            msgListener = new TestCase11ConsumerMsgListener(testCase);
+        }else if(testCase.testCaseId ==12){
+            //保证都能收到
+            bindingKeys = BindingKeyGenerator.generateAll();
+            msgListener = new TestCase12ConsumerMsgListener(testCase);
+        }else if(testCase.testCaseId == 13){
+            //只保证匹配到的都能收到
+            bindingKeys = new String[2];
+            bindingKeys[0] = BindingKeyGenerator.generateEndMark();
+            bindingKeys[1] = BindingKeyGenerator.generate();
+            msgListener = testCase.slowConsumer && uniqueId == 1998 ? new SlowConsumerMsgListener() : new NoopMsgListener();
+        }else throw new RuntimeException("不支持的 testCase:"+testCase.testCaseId);
         pubSub.sub(bindingKeys,
-                testCase.durable ? TestContents.DURABLE_QUEUE_PREFIX + uniqueId : TestContents.NONDURABLE_QUEUE_PREFIX + uniqueId,
+                EnvironmentUtils.getQueueName(testCase),
                 testCase.durable,
                 //只选择节点5进行慢消费测试
-                testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener()
+                msgListener
         );
     }
 
 
 
     //功能性测试发包 包体为 AmqpMessage
-    private void doFuncKsPub(TestCaseEnum testCase) {
-        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+    private void doFuncKsPub(TestCaseEnum testCase,byte send) {
+        int testTime = EnvironmentUtils.getTestTime();
 
         int msgSendRate = testCase.msgSendRate;
         int totalSendMsgCount = msgSendRate * testTime;
 
         AmqpMessage msg = new AmqpMessage(testCase.msgSize);
-        msg.setBody(MessageBodyGenerator.generate(msg.getBody().length));
+
 
         LOG.info("start Func pub packet by kingstar");
         int durable = testCase.durable ? 1 : 0;
@@ -150,6 +178,10 @@ public class TestCaseRunner implements CommandLineRunner {
         int haveSend = 0;
         while (haveSend < totalSendMsgCount) {
             String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
+            msg.setSeq(haveSend+1);
+            msg.setSender(send);
+            msg.setBody(MessageBodyGenerator.generate(msg.getBody().length));
+            msg.setMd5(MD5Utils.md5ForByte(msg.getBody()));
             pubSub.pub(msg, routingKey, durable);
             haveSend++;
             /*
@@ -179,8 +211,11 @@ public class TestCaseRunner implements CommandLineRunner {
             }
         }
         //发送endMark消息
-        //msg.setEndMark((short) 1);
-        //pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
+        msg.setEndMark((byte)1);
+        msg.setSeq(haveSend);
+        msg.setSender((byte)0);
+        msg.setTotal(haveSend);
+        pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
         long tv_end = System.nanoTime();
         //计算总耗时 us
         long usec = (tv_end - tv_start) / 1000;
@@ -194,7 +229,7 @@ public class TestCaseRunner implements CommandLineRunner {
 
 
     private void doPerfKsPub(TestCaseEnum testCase) {
-        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+        int testTime = EnvironmentUtils.getTestTime();
 
         int msgSendRate = testCase.msgSendRate;
         int totalSendMsgCount = msgSendRate * testTime;
@@ -261,9 +296,6 @@ public class TestCaseRunner implements CommandLineRunner {
                 tv_k = tv_k_real;
             }
         }
-        //发送endMark消息
-        //msg.setEndMark((short) 1);
-        //pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
         long tv_end = System.nanoTime();
         //计算总耗时 us
         long usec = (tv_end - tv_start) / 1000;
@@ -273,6 +305,5 @@ public class TestCaseRunner implements CommandLineRunner {
         double avgPkt = totalSendMsgCount / sec;
         LOG.info(String.format("Send %d %dbytes packets in %d us (%.2f s), %.0f pkt/sec",
                 totalSendMsgCount, testCase.msgSize, usec, sec, avgPkt));
-        //pubSub.statistics();
     }
 }

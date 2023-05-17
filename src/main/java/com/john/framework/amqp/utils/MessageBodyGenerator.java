@@ -10,6 +10,10 @@ public class MessageBodyGenerator {
         return bytes;
     }
 
+    public static void generate(byte[] src) {
+        new Random().nextBytes(src);
+    }
+
     public static void main(String[] args) {
         byte[] bytes = generate(20);
 

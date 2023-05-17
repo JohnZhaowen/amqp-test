@@ -5,6 +5,7 @@ import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.testcase.TestRawData;
 import com.john.framework.amqp.testcase.TestStatistics;
 import com.john.framework.amqp.utils.CsvUtils;
+import com.john.framework.amqp.utils.EnvironmentUtils;
 import com.john.framework.amqp.utils.MathUils;
 import com.john.framework.amqp.utils.MathUtils;
 import com.john.framework.amqp.utils.StatisticsUtils;
@@ -35,10 +36,6 @@ public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
 
     private int warmupCount;
 
-    private volatile int[] latencyInUs;
-
-    private int latencyInUsLength = 0;
-
     //初始化标识
     private volatile boolean init = false;
 
@@ -65,7 +62,7 @@ public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
         }
         this.startLatencyDaemonThread(threadName);
         init = true;
-        LOG.info("LatencyDaemonThread init end...");
+        LOG.info("PerfBigThread init end...");
     }
 
     private void startLatencyDaemonThread(String threadName){
@@ -92,7 +89,7 @@ public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
                         Integer[] dest = latencyInUsList.toArray(new Integer[latencyInUsList.size()]);
                         int[] res = Arrays.stream(dest).mapToInt(Integer::valueOf).toArray();
                         System.arraycopy(res, warmupCount, recvLatencies, 0, recvLatencies.length);
-                        latencyInUs = null;
+
                         //统计数据，一个测试用例生产一个统计数据
                         int[] rawLatencies = MathUils.split(recvLatencies, TestContents.LATENCY_RAW_BATCHES);
                         for (int rawLatency : rawLatencies) {
@@ -115,19 +112,15 @@ public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
         }
     }
 
-    public PerfStatisticsConsumerBigMsgListener(TestCaseEnum testCaseEnum, Environment environment) {
-        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
-        int warmupTime = Integer.parseInt(environment.getProperty("warmupTime", String.valueOf(TestContents.WARMUP_TIME_IN_SECONDS)));
-
-
+    public PerfStatisticsConsumerBigMsgListener(TestCaseEnum testCaseEnum) {
+        int testTime = EnvironmentUtils.getTestTime();
+        int warmupTime = EnvironmentUtils.getWarmupTime();
         this.testCaseEnum = testCaseEnum;
-        init("LatencyDaemonThread");
+        init("PerfBigThread");
         LOG.info("测试用例详情:{}",testCaseEnum.toString());
         //最多接收到这么多消息，但是如果有过滤，就会少于这个量
         totalCount = testCaseEnum.msgSendRate * testTime;
         warmupCount = testCaseEnum.msgSendRate * warmupTime;
-        latencyInUs = new int[totalCount];
-        latencyInUsLength = latencyInUs.length;
         LOG.info("listener build for testCase: [{}], should send [{}] packets.",
                 testCaseEnum.testCaseId, totalCount);
     }
@@ -136,7 +129,7 @@ public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
     public void onMsg(String routingKey, byte[] pMsgbuf, long seq_no) {
         long end = System.nanoTime();
         recvCount++;
-        if (recvCount > latencyInUsLength) return;
+        if (recvCount > totalCount) return;
         //2m的走多线程解压
         try {
             if(Snappy.isValidCompressedBuffer(pMsgbuf)){
@@ -146,7 +139,7 @@ public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (recvCount== latencyInUsLength) stop_flag = 1;
+        if (recvCount== totalCount) stop_flag = 1;
     }
 
     class InnerThread implements Runnable{

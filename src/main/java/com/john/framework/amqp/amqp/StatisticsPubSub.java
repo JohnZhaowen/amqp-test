@@ -2,7 +2,7 @@ package com.john.framework.amqp.amqp;
 
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
-import com.john.framework.amqp.utils.MathUtils;
+import com.john.framework.amqp.utils.EnvironmentUtils;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
 import com.kingstar.messaging.api.QueueType;
@@ -17,9 +17,8 @@ import org.xerial.snappy.Snappy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
-public class PubSubStatistics implements IPubSub {
+public class StatisticsPubSub implements IPubSub {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleSub.class);
 
@@ -42,7 +41,7 @@ public class PubSubStatistics implements IPubSub {
 
     volatile long[] rtt;
 
-    public PubSubStatistics(TestCaseEnum testCaseEnum,Environment environment) {
+    public StatisticsPubSub(TestCaseEnum testCaseEnum, Environment environment) {
         this.environment = environment;
         this.testCaseEnum = testCaseEnum;
     }
@@ -54,17 +53,17 @@ public class PubSubStatistics implements IPubSub {
             return;
         }
         init = true;
-        compressLen = Integer.parseInt(environment.getProperty("compressLen", TestContents.MSG_SIZE_OF_2M+""));
-        int testTime = Integer.parseInt(environment.getProperty("testTime", String.valueOf(TestContents.TEST_TIME_IN_SECONDS)));
+        compressLen = EnvironmentUtils.getCompressLen();
+        int testTime = EnvironmentUtils.getTestTime();
         rtt = new long[testCaseEnum.msgSendRate*testTime];
         packetSize = testCaseEnum.msgSize;
         //注册一个回调 不订订阅即可
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
-        String sendType = environment.getProperty("sendType");
-        if(StringUtils.isBlank(sendType)||"ks1".equalsIgnoreCase(sendType)){
-            ksKingMQServerAPI = new KSKingMQServerAPI(new PerfStatisticsConsumerLittleMsgListener(testCaseEnum,environment));
+        //按测试用例来
+        if(testCaseEnum.testCaseId==2){
+            ksKingMQServerAPI = new KSKingMQServerAPI(new PerfStatisticsConsumerBigMsgListener(testCaseEnum));
         }else{
-            ksKingMQServerAPI = new KSKingMQServerAPI(new FuncStatisticsConsumerMsgListener(testCaseEnum,environment));
+            ksKingMQServerAPI = new KSKingMQServerAPI(new PerfStatisticsConsumerLittleMsgListener(testCaseEnum));
         }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
@@ -80,7 +79,7 @@ public class PubSubStatistics implements IPubSub {
             }
             try {
                 logger.info("connecting server! wait a moment!");
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -116,36 +115,6 @@ public class PubSubStatistics implements IPubSub {
         }
     }
 
-    //根据平均速度计算
-    private void report() {
-
-        double avg=0.0;
-        //copy 数组
-        Arrays.sort(rtt, 0, rtt.length);
-
-        int longLatencyCount = 0;
-        int subLength = rtt.length;
-        for(int i = 0; i < subLength; i++) {
-            avg += rtt[i];
-            if(rtt[i]>1000){
-                longLatencyCount++;
-            }
-        }
-
-        avg /= (double)subLength;
-
-        double stdDev = MathUtils.calStdDev(avg,rtt);
-
-        System.out.printf("min = %d, max=%d avg=%.0f%n", rtt[0],rtt[subLength-1], avg);
-        System.out.printf("999pcnt = %d%n", rtt[(int) (subLength * 0.999)]);
-        System.out.printf("99pcnt = %d%n", rtt[(int) (subLength * 0.99)]);
-        System.out.printf("95pcnt = %d%n", rtt[(int) (subLength * 0.95)]);
-        System.out.printf("90pcnt = %d%n", rtt[(int) (subLength * 0.90)]);
-        System.out.printf("50pcnt = %d%n", rtt[(int) (subLength * 0.50)]);
-
-        System.out.println("stdDev ="+stdDev);
-        System.out.println("longLatencyCount="+longLatencyCount);
-    }
 
     @Override
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
@@ -156,7 +125,7 @@ public class PubSubStatistics implements IPubSub {
             QueueType queueType = new QueueType();
             queueType.setDurable(durable ? 1 : 0);
             queueType.setBindingKey(bindingKeys[i]);
-            queueType.setOffset(0);
+            queueType.setOffset(-1);
             queueType.setQueue(queue);
             reqSubscribeField.setElems(queueType);
             APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
@@ -167,14 +136,16 @@ public class PubSubStatistics implements IPubSub {
             }
             while (true) {
                 if (ksKingMQServerAPI.subscribe()) {
-                    if(i!=9){
+                    logger.warn("req Subscribing success! Subscribe queue name:{},bindKey:{}",
+                            queue, bindingKeys[i]);
+                    if(i != bindingKeys.length-1){
                         //重置
                         ksKingMQServerAPI.setSubscribe(false);
                     }
                     break;
                 }
                 try {
-                    logger.info("req Subscribing! wait a moment! Subscribe queue name:{},bindKey:{}",
+                    logger.warn("req Subscribing! wait a moment! Subscribe queue name:{},bindKey:{}",
                             queue, bindingKeys[i]);
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {

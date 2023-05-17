@@ -6,6 +6,7 @@ import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
 import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -47,8 +48,11 @@ public class SimplePub implements IPubSub {
         compressLen = Integer.parseInt(environment.getProperty("compressLen", TestContents.MSG_SIZE_OF_2M+""));
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         packetSize = testCaseEnum.msgSize;
-
         KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(new NoopMsgListener());
+        String apiId =environment.getProperty("apiId");
+        if(StringUtils.isNotBlank(apiId)){
+            ksKingMQ.OverrideParameter("ApiId",apiId);
+        }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
