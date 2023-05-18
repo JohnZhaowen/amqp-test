@@ -65,6 +65,14 @@ public class StatisticsPubSub implements IPubSub {
         }else{
             ksKingMQServerAPI = new KSKingMQServerAPI(new PerfStatisticsConsumerLittleMsgListener(testCaseEnum));
         }
+        String apiId =environment.getProperty("apiId");
+        if(StringUtils.isNotBlank(apiId)){
+            ksKingMQ.OverrideParameter("ApiId",apiId);
+        }
+        String groupId = environment.getProperty("groupId");
+        if(StringUtils.isNotBlank(groupId)){
+            ksKingMQ.OverrideParameter("GroupId",groupId);
+        }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {

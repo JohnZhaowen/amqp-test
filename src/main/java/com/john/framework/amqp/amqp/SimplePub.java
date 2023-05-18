@@ -1,7 +1,9 @@
 package com.john.framework.amqp.amqp;
 
+import com.john.framework.amqp.functest.PreSettingBindingKeys;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
+import com.john.framework.amqp.utils.MessageMatherUtils;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
 import com.kingstar.struct.JavaStruct;
@@ -14,6 +16,8 @@ import org.xerial.snappy.Snappy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SimplePub implements IPubSub {
 
@@ -27,6 +31,11 @@ public class SimplePub implements IPubSub {
 
     private TestCaseEnum testCaseEnum;
     private Environment environment;
+
+    //为案例9 测试
+    private String[] preSettingBindingKeys = PreSettingBindingKeys.getPreSettingBindingKeys();
+    //key binding key value匹配的数量
+    private Map<String, Integer> consumerMsgCountMap = new HashMap<>();
 
     //包多大要压缩
     private int compressLen = 2*1024*1024;
@@ -53,6 +62,10 @@ public class SimplePub implements IPubSub {
         if(StringUtils.isNotBlank(apiId)){
             ksKingMQ.OverrideParameter("ApiId",apiId);
         }
+        String groupId = environment.getProperty("groupId");
+        if(StringUtils.isNotBlank(groupId)){
+            ksKingMQ.OverrideParameter("GroupId",groupId);
+        }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
         if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
@@ -76,10 +89,28 @@ public class SimplePub implements IPubSub {
     @Override
     public void pub(AmqpMessage msg, String routingKey, int persist) {
         try {
+            //需要统计binding key的匹配数量
+            if(testCaseEnum.testCaseId==10){
+                countStatistics(routingKey);
+                if(msg.getEndMark()==1){
+                    logger.info("testCaseId:{},routingKey match bindingKey detail:{}",
+                            testCaseEnum.testCaseId,consumerMsgCountMap);
+                }
+            }
             byte[] send = JavaStruct.pack(msg);
             ksKingMQ.publish(routingKey, send, persist);
         } catch (StructException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void countStatistics(String routingKey) {
+        for(int i = 0; i < preSettingBindingKeys.length; i++){
+            String bindingKey = preSettingBindingKeys[i];
+            if(MessageMatherUtils.match(routingKey,bindingKey)){
+                int count = consumerMsgCountMap.get(bindingKey) + 1;
+                consumerMsgCountMap.put(preSettingBindingKeys[i], count);
+            }
         }
     }
 

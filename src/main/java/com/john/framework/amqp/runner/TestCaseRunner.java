@@ -5,18 +5,17 @@ import com.john.framework.amqp.amqp.IMsgListener;
 import com.john.framework.amqp.amqp.IPubSub;
 import com.john.framework.amqp.amqp.NoopMsgListener;
 import com.john.framework.amqp.amqp.SlowConsumerMsgListener;
+import com.john.framework.amqp.functest.PreSettingBindingKeys;
 import com.john.framework.amqp.functest.TestCase10ConsumerMsgListener;
 import com.john.framework.amqp.functest.TestCase11ConsumerMsgListener;
 import com.john.framework.amqp.functest.TestCase12ConsumerMsgListener;
 import com.john.framework.amqp.functest.TestCase9ConsumerMsgListener;
 import com.john.framework.amqp.testcase.TestCaseEnum;
-import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.BindingKeyGenerator;
 import com.john.framework.amqp.utils.EnvironmentUtils;
 import com.john.framework.amqp.utils.MD5Utils;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 @Component
 public class TestCaseRunner implements CommandLineRunner {
@@ -107,7 +104,8 @@ public class TestCaseRunner implements CommandLineRunner {
             //只保证匹配到的都能收到
             bindingKeys = new String[2];
             bindingKeys[0] = BindingKeyGenerator.generateEndMark();
-            bindingKeys[1] = BindingKeyGenerator.generate();
+            //提前预设好的 binding key
+            bindingKeys[1] = PreSettingBindingKeys.generate();
             msgListener = new TestCase10ConsumerMsgListener(testCase);
         }else if(testCase.testCaseId == 11){
             //保证都能收到
@@ -122,7 +120,7 @@ public class TestCaseRunner implements CommandLineRunner {
             bindingKeys = new String[2];
             bindingKeys[0] = BindingKeyGenerator.generateEndMark();
             bindingKeys[1] = BindingKeyGenerator.generate();
-            msgListener = testCase.slowConsumer && uniqueId == 1998 ? new SlowConsumerMsgListener() : new NoopMsgListener();
+            msgListener = testCase.slowConsumer && uniqueId == 998 ? new SlowConsumerMsgListener() : new NoopMsgListener();
         }else throw new RuntimeException("不支持的 testCase:"+testCase.testCaseId);
         pubSub.sub(bindingKeys,
                 EnvironmentUtils.getQueueName(testCase),
@@ -142,7 +140,7 @@ public class TestCaseRunner implements CommandLineRunner {
         int totalSendMsgCount = msgSendRate * testTime;
 
         AmqpMessage msg = new AmqpMessage(testCase.msgSize);
-
+        msg.setSender(send);
 
         LOG.info("start Func pub packet by kingstar");
         int durable = testCase.durable ? 1 : 0;
@@ -179,7 +177,6 @@ public class TestCaseRunner implements CommandLineRunner {
         while (haveSend < totalSendMsgCount) {
             String routingKey = RoutingKeyGenerator.getRandomRoutingKey();
             msg.setSeq(haveSend+1);
-            msg.setSender(send);
             msg.setBody(MessageBodyGenerator.generate(msg.getBody().length));
             msg.setMd5(MD5Utils.md5ForByte(msg.getBody()));
             pubSub.pub(msg, routingKey, durable);
@@ -212,8 +209,6 @@ public class TestCaseRunner implements CommandLineRunner {
         }
         //发送endMark消息
         msg.setEndMark((byte)1);
-        msg.setSeq(haveSend);
-        msg.setSender((byte)0);
         msg.setTotal(haveSend);
         pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
         long tv_end = System.nanoTime();

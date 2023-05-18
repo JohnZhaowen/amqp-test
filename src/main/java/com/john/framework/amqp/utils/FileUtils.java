@@ -26,6 +26,7 @@ public class FileUtils {
     public static Long readSeqNo(String fileName) {
         File f = new File(fileName);
         if (!f.exists() || !f.isFile()) {
+            LOG.warn("file:{},不存在！",fileName);
             return -1l;
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(f))) {

@@ -84,4 +84,8 @@ public class EnvironmentUtils {
     public static String getApiId(){
         return staticEnvironment.getProperty("apiId");
     }
+
+    public static String getGroupId(){
+        return staticEnvironment.getProperty("groupId");
+    }
 }
