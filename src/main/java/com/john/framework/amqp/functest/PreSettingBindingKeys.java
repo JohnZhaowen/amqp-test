@@ -7,9 +7,10 @@ public class PreSettingBindingKeys {
     private static final String[] PRESETTING_BINGING_KEYS = {
             "pilot.default.JET.SZ.FUT.*.*.*.*.*",
             "pilot.default.JET.SZ.*.IRS.*.*.*.*",
-            "pilot.default.JET.SZ.FUT.IRS.qb.*.*.*",
             "pilot.default.JET.SZ.*.IRS.*.dimple.*.*",
-            "pilot.default.JET.SZ.*.*.*.dimple.100031.*"
+            "pilot.default.JET.SZ.*.*.*.dimple.100031.*",
+            "pilot.default.JET.SZ.FUT.*.*.*.100035.*",
+            "pilot.default.JET.SZ.*.*.*.ENDMARK.*.*",
 
     };
 

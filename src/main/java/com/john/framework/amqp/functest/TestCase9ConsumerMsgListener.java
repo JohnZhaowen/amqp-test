@@ -23,7 +23,7 @@ public class TestCase9ConsumerMsgListener extends AbstractFuncConsumerMsgListene
     private long expectSeq2;
 
     @Override
-    protected void onMsgEnd(AmqpMessage message) {
+    protected void onMsgEnd(AmqpMessage message,long seq_no) {
         long sendTotal = message.getTotal();
         byte sender = message.getSender();
         if(sender ==1){

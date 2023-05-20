@@ -4,7 +4,6 @@ import com.john.framework.amqp.amqp.AmqpMessage;
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 
 /**
  * @Description 用例9
@@ -20,7 +19,7 @@ public class TestCase10ConsumerMsgListener extends AbstractFuncConsumerMsgListen
     }
 
     @Override
-    protected void onMsgEnd(AmqpMessage message) {
+    protected void onMsgEnd(AmqpMessage message,long seq_no) {
         long sendTotal = message.getTotal();
         byte sender = message.getSender();
         if(sender ==1){
@@ -31,5 +30,10 @@ public class TestCase10ConsumerMsgListener extends AbstractFuncConsumerMsgListen
             total1 =0 ;
             lastSeqNo1 = 0;
         }
+    }
+
+    @Override
+    protected void validationRoutingKeyAndBindKey(AmqpMessage message, String routingKey) {
+        logger.info("msg routing key:{}", routingKey);
     }
 }

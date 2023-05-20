@@ -16,6 +16,7 @@ import com.john.framework.amqp.utils.EnvironmentUtils;
 import com.john.framework.amqp.utils.MD5Utils;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -150,7 +150,7 @@ public enum TestCaseEnum {
     public int msgSize;
     public int msgSendRate;
     public final int pubsubCount;
-    public final boolean durable;
+    public boolean durable;
     public final boolean slowConsumer;
 
     TestCaseEnum(int testCaseId, int msgSize, int pubsubCount, boolean durable, boolean slowConsumer) {

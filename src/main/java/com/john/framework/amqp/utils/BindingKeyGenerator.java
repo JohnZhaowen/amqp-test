@@ -49,14 +49,8 @@ public class BindingKeyGenerator {
     }
 
     public static void main(String[] args) {
-        for(int i=0;i<1000000000;i++){
-            String[] arr = generate().split("\\.");
-            if(arr.length!=10){
-                System.out.println(Arrays.toString(arr));
-                break;
-            }
-        }
-        ;
+        String[] arr = generateAll();
+        System.out.println(Arrays.toString(arr));
     }
 
 

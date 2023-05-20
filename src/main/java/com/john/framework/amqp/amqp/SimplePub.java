@@ -90,28 +90,37 @@ public class SimplePub implements IPubSub {
     public void pub(AmqpMessage msg, String routingKey, int persist) {
         try {
             //需要统计binding key的匹配数量
+            byte[] send = JavaStruct.pack(msg);
             if(testCaseEnum.testCaseId==10){
-                countStatistics(routingKey);
+                boolean isSend = countStatistics(routingKey);
+                if(isSend||msg.getEndMark()==1){
+                    ksKingMQ.publish(routingKey, send, persist);
+                }
                 if(msg.getEndMark()==1){
                     logger.info("testCaseId:{},routingKey match bindingKey detail:{}",
                             testCaseEnum.testCaseId,consumerMsgCountMap);
                 }
+            }else{
+                ksKingMQ.publish(routingKey, send, persist);
             }
-            byte[] send = JavaStruct.pack(msg);
-            ksKingMQ.publish(routingKey, send, persist);
         } catch (StructException e) {
             e.printStackTrace();
         }
     }
 
-    private void countStatistics(String routingKey) {
+    private boolean countStatistics(String routingKey) {
+        boolean send = false;
         for(int i = 0; i < preSettingBindingKeys.length; i++){
             String bindingKey = preSettingBindingKeys[i];
             if(MessageMatherUtils.match(routingKey,bindingKey)){
-                int count = consumerMsgCountMap.get(bindingKey) + 1;
+                logger.info("routing key:{},bindingKey:{}",routingKey,bindingKey);
+                Integer count = consumerMsgCountMap.get(bindingKey);
+                count =  count==null? 1:count+1;
                 consumerMsgCountMap.put(preSettingBindingKeys[i], count);
+                send = true;
             }
         }
+        return send;
     }
 
     @Override

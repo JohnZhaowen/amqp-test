@@ -1,10 +1,11 @@
 package com.john.framework.amqp;
 
 import com.john.framework.amqp.amqp.IPubSub;
-import com.john.framework.amqp.amqp.StatisticsPubSub;
 import com.john.framework.amqp.amqp.SimplePub;
 import com.john.framework.amqp.amqp.SimpleSub;
+import com.john.framework.amqp.amqp.StatisticsPubSub;
 import com.john.framework.amqp.testcase.TestCaseEnum;
+import com.john.framework.amqp.utils.EnvironmentUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
-import java.util.Objects;
 import java.util.Scanner;
 
 @SpringBootApplication
@@ -44,13 +44,16 @@ public class AmqpTestApplication {
 
     @Bean
     public IPubSub pubSub() {
+        EnvironmentUtils.setStaticEnvironment(environment);
         IPubSub pubSub;
-        int testCaseId = Integer.parseInt(Objects.requireNonNull(environment.getProperty("testCaseId")));
-        int sendRate = Integer.parseInt(Objects.requireNonNull(environment.getProperty("sendRate")));
-        String appType = Objects.requireNonNull(environment.getProperty("appType"));
+        int testCaseId = EnvironmentUtils.getTestCaseId();
+        int sendRate = EnvironmentUtils.getSendRate();
+        String appType = EnvironmentUtils.getAppType();
         TestCaseEnum testCaseEnum = TestCaseEnum.getById(testCaseId);
         testCaseEnum.msgSendRate = sendRate;
-        String msgSize = environment.getProperty("packetsize");
+        testCaseEnum.durable = StringUtils.isBlank(EnvironmentUtils.getDurable())?
+                testCaseEnum.durable:"1".equals(EnvironmentUtils.getDurable());
+        String msgSize = EnvironmentUtils.getPacketSize();
 
         if ("sub".equalsIgnoreCase(appType)) {
             pubSub = new SimpleSub(testCaseEnum,environment);
@@ -60,7 +63,9 @@ public class AmqpTestApplication {
             }
             pubSub = new SimplePub(testCaseEnum, environment);
         } else if ("pubsub".equalsIgnoreCase(appType)) {
-            if(testCaseId>8) throw new RuntimeException("appType=pubsub仅适用于 小于或等于8的案例！");
+            //13案例测试 也算性能测试
+            if(testCaseId>8&&testCaseId!=13)
+                throw new RuntimeException("appType=pubsub仅适用于 小于或等于8或者13的案例！");
             if (StringUtils.isNotBlank(msgSize)) {
                 testCaseEnum.msgSize = Integer.parseInt(msgSize);
             }

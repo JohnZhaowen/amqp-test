@@ -2,11 +2,8 @@ package com.john.framework.amqp.utils;
 
 import com.john.framework.amqp.testcase.TestCaseEnum;
 import com.john.framework.amqp.testcase.TestContents;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Objects;
 
 /**
@@ -15,18 +12,11 @@ import java.util.Objects;
  * @Date 2023/5/17
  */
 
-@Component
 public class EnvironmentUtils {
 
-    @Autowired
-    private Environment environment;
 
     private static Environment staticEnvironment;
 
-    @PostConstruct
-    public void init(){
-        staticEnvironment = environment;
-    }
 
     public static int getTestCaseId(){
         return Integer.parseInt(Objects.requireNonNull(staticEnvironment.getProperty("testCaseId")));
@@ -86,6 +76,18 @@ public class EnvironmentUtils {
     }
 
     public static String getGroupId(){
+        return staticEnvironment.getProperty("groupId");
+    }
+
+    public static Environment getStaticEnvironment() {
+        return staticEnvironment;
+    }
+
+    public static void setStaticEnvironment(Environment staticEnvironment) {
+        EnvironmentUtils.staticEnvironment = staticEnvironment;
+    }
+
+    public static String getDurable(){
         return staticEnvironment.getProperty("groupId");
     }
 }

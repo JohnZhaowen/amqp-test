@@ -44,6 +44,8 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
             JavaStruct.unpack(packet, pMsgbuf);
             //只有持久化才会保存seq_no
             if(testCaseEnum.durable){
+                if(total1 ==0) logger.info("current consumer start sender seq_no：{},broker seq_no:{}",
+                        packet.getSeq(),seq_no);
                 FileUtils.writeSeqNo(EnvironmentUtils.getSeqNoFileName(testCaseEnum),seq_no);
             }
             byte sender =packet.getSender();
@@ -56,13 +58,16 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
                 //发送端结束
                 if(endMark == 1){
                     //暂时每一条都发送
-                    onMsgEnd(packet);
+                    onMsgEnd(packet,seq_no);
                 }else{
                     total1++;
                     //验证发送顺序与接收顺序 严格一致  只适用于 全部收到的情况
                     //只适用于功能测试场景9
                     if(testCaseEnum.testCaseId==9){
                         validationSendOrderAndReceiveOrder(packet);
+                    }
+                    if(testCaseEnum.testCaseId==10){
+                        validationRoutingKeyAndBindKey(packet,routingKey);
                     }
                     if (!MD5Utils.md5(body).equals(MD5Utils.converBytes2HexStr(md5))) {
                         logger.error("producer1 body error, md5 should be[{}], but is [{}]", md5, MD5Utils.md5(body));
@@ -81,7 +86,7 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
                 //发送端结束
                 if(endMark == 1){
                     //暂时每一条都发送
-                    onMsgEnd(packet);
+                    onMsgEnd(packet,seq_no);
                 }else{
                     total2++;
                     //验证发送顺序与接收顺序 严格一致  只适用于 全部收到的情况
@@ -107,9 +112,13 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
     }
 
     //子类需要扩展的 关于结束标识的
-    protected abstract void onMsgEnd(AmqpMessage message);
+    protected abstract void onMsgEnd(AmqpMessage message,long seq_no);
 
     //验证发送顺序与接收顺序 严格一致  只适用于 全部收到的情况
     //只适用于功能测试场景9
-    protected void validationSendOrderAndReceiveOrder(AmqpMessage message){};
+    protected void validationSendOrderAndReceiveOrder(AmqpMessage message){}
+
+    //观察收到的数量
+    //只适用于功能测试场景10
+    protected void validationRoutingKeyAndBindKey(AmqpMessage message,String routingKey){}
 }
