@@ -10,6 +10,7 @@ import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 
 /**
  * @Description TODO
@@ -32,6 +33,9 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
 
     protected long lastSeqNo2;
 
+    //broker定序序号
+    protected volatile long seqNo;
+
     public AbstractFuncConsumerMsgListener(TestCaseEnum testCaseEnum){
         this.testCaseEnum = testCaseEnum;
     }
@@ -39,13 +43,12 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
     //抽象类完成 顺序检验，body验证，
     @Override
     public void onMsg(String routingKey, byte[] pMsgbuf, long seq_no) {
+        seqNo = seq_no;
         AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
         try {
             JavaStruct.unpack(packet, pMsgbuf);
             //只有持久化才会保存seq_no
             if(testCaseEnum.durable){
-                if(total1 ==0) logger.info("current consumer start sender seq_no：{},broker seq_no:{}",
-                        packet.getSeq(),seq_no);
                 FileUtils.writeSeqNo(EnvironmentUtils.getSeqNoFileName(testCaseEnum),seq_no);
             }
             byte sender =packet.getSender();
@@ -55,6 +58,10 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
             byte endMark = packet.getEndMark();
             //生产者1发送
             if (sender == 1) {
+                //第1条消息消费的发送端序号 打印日志
+                if(lastSeqNo1 == 0){
+                    logger.info("开始消费发送端消息，发送端标识：{},发送端序号：{}, broker seq_no:{}", sender,seq,seq_no);
+                }
                 //发送端结束
                 if(endMark == 1){
                     //暂时每一条都发送
@@ -73,8 +80,11 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
                         logger.error("producer1 body error, md5 should be[{}], but is [{}]", md5, MD5Utils.md5(body));
                     }
                     //保证顺序消费 其实这里不严格 严格来说  是以broker收到的顺序为准
-                    if(seq <= lastSeqNo1 ){
-                        logger.error("producer1 seq error,  seq[{}] should be > lastSeqNo1 [{}] ,but not", seq, lastSeqNo1);
+                    //仅限于 9和10案例
+                    if(testCaseEnum.testCaseId==9||testCaseEnum.testCaseId==10){
+                        if(seq <= lastSeqNo1 ){
+                            logger.error("producer1 seq error,  seq[{}] should be > lastSeqNo1 [{}] ,but not", seq, lastSeqNo1);
+                        }
                     }
                     //放置值
                     lastSeqNo1 = seq;
@@ -82,10 +92,13 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
             }
             //生产者2发送
             if (sender == 2) {
-
+                //第1条消息消费的发送端序号 打印日志
+                if(lastSeqNo2 == 0){
+                    logger.info("开始消费发送端消息，发送端标识：{},发送端序号：{}, broker seq_no:{}", sender,seq,seq_no);
+                }
                 //发送端结束
                 if(endMark == 1){
-                    //暂时每一条都发送
+                    //结束标识
                     onMsgEnd(packet,seq_no);
                 }else{
                     total2++;
@@ -99,8 +112,11 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
                         logger.error("producer2 body error, md5 should be[{}], but is [{}]", md5, MD5Utils.md5(body));
                     }
                     //保证顺序消费 其实这里不严格 严格来说  是以broker收到的顺序为准
-                    if(seq <= lastSeqNo2){
-                        logger.error("producer2 seq error,  seq[{}] should be > lastSeqNo2 [{}] ,but not", seq, lastSeqNo2);
+                    //仅限于 9和10案例
+                    if(testCaseEnum.testCaseId==9||testCaseEnum.testCaseId==10) {
+                        if (seq <= lastSeqNo2) {
+                            logger.error("producer2 seq error,  seq[{}] should be > lastSeqNo2 [{}] ,but not", seq, lastSeqNo2);
+                        }
                     }
                     //放置值
                     lastSeqNo2 = seq;

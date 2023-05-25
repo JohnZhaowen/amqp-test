@@ -26,8 +26,6 @@ public class StatisticsPubSub implements IPubSub {
 
     private volatile boolean init = false;
 
-    private KSKingMQServerAPI ksKingMQServerAPI;
-
     private ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8);
 
     private Environment environment;
@@ -44,6 +42,10 @@ public class StatisticsPubSub implements IPubSub {
     public StatisticsPubSub(TestCaseEnum testCaseEnum, Environment environment) {
         this.environment = environment;
         this.testCaseEnum = testCaseEnum;
+        compressLen = EnvironmentUtils.getCompressLen();
+        int testTime = EnvironmentUtils.getTestTime();
+        rtt = new long[testCaseEnum.msgSendRate*testTime];
+        packetSize = testCaseEnum.msgSize;
     }
 
     @Override
@@ -53,45 +55,8 @@ public class StatisticsPubSub implements IPubSub {
             return;
         }
         init = true;
-        compressLen = EnvironmentUtils.getCompressLen();
-        int testTime = EnvironmentUtils.getTestTime();
-        rtt = new long[testCaseEnum.msgSendRate*testTime];
-        packetSize = testCaseEnum.msgSize;
         //注册一个回调 不订订阅即可
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
-        //按测试用例来
-        if(testCaseEnum.testCaseId==2){
-            ksKingMQServerAPI = new KSKingMQServerAPI(new PerfStatisticsConsumerBigMsgListener(testCaseEnum));
-        }else{
-            ksKingMQServerAPI = new KSKingMQServerAPI(new PerfStatisticsConsumerLittleMsgListener(testCaseEnum));
-        }
-        String apiId =environment.getProperty("apiId");
-        if(StringUtils.isNotBlank(apiId)){
-            ksKingMQ.OverrideParameter("ApiId",apiId);
-        }
-        String groupId = environment.getProperty("groupId");
-        if(StringUtils.isNotBlank(groupId)){
-            ksKingMQ.OverrideParameter("GroupId",groupId);
-        }
-        //连接 broker
-        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
-        if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
-            logger.error("connect server failed! error code:{},,error msg:{}", apiResult.swigValue(),
-                    apiResult.toString());
-            throw new RuntimeException("connect server failed!error msg:" + apiResult.toString());
-        }
-        while (true) {
-            if (ksKingMQServerAPI.connect()) {
-                init = true;
-                break;
-            }
-            try {
-                logger.info("connecting server! wait a moment!");
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override
@@ -126,42 +91,35 @@ public class StatisticsPubSub implements IPubSub {
 
     @Override
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
-        ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
-        //声明queue
-        for (int i=0;i<bindingKeys.length;i++) {
-            reqSubscribeField.setCnt(1);
-            QueueType queueType = new QueueType();
-            queueType.setDurable(durable ? 1 : 0);
-            queueType.setBindingKey(bindingKeys[i]);
-            queueType.setOffset(-1);
-            queueType.setQueue(queue);
-            reqSubscribeField.setElems(queueType);
-            APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
-            if (subResult.swigValue() != APIResult.SUCCESS.swigValue()) {
-                logger.error("req Subscribe failed! Subscribe queue name:{},bindKey:{},error code:{},error msg:{}",
-                        queue, bindingKeys[i], subResult.swigValue(), subResult.toString());
-                return false;
+        //按测试用例来
+        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(listener,testCaseEnum,queue,bindingKeys,ksKingMQ);
+        String apiId =environment.getProperty("apiId");
+        if(StringUtils.isNotBlank(apiId)){
+            ksKingMQ.OverrideParameter("ApiId",apiId);
+        }
+        String groupId = environment.getProperty("groupId");
+        if(StringUtils.isNotBlank(groupId)){
+            ksKingMQ.OverrideParameter("GroupId",groupId);
+        }
+        //连接 broker
+        APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
+        if (apiResult.swigValue() != APIResult.SUCCESS.swigValue()) {
+            logger.error("connect server failed! error code:{},,error msg:{}", apiResult.swigValue(),
+                    apiResult.toString());
+            throw new RuntimeException("connect server failed!error msg:" + apiResult.toString());
+        }
+        //判断是否连接和订阅成功
+        while (true) {
+            if (ksKingMQServerAPI.connect()&&ksKingMQServerAPI.isAllSubscribeOk()) {
+                return true;
             }
-            while (true) {
-                if (ksKingMQServerAPI.subscribe()) {
-                    logger.warn("req Subscribing success! Subscribe queue name:{},bindKey:{}",
-                            queue, bindingKeys[i]);
-                    if(i != bindingKeys.length-1){
-                        //重置
-                        ksKingMQServerAPI.setSubscribe(false);
-                    }
-                    break;
-                }
-                try {
-                    logger.warn("req Subscribing! wait a moment! Subscribe queue name:{},bindKey:{}",
-                            queue, bindingKeys[i]);
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            try {
+                logger.info("connecting server or req subscribe!! wait a moment!");
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        return true;
     }
 
 }

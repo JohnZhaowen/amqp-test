@@ -59,7 +59,7 @@ public class RoutingKeyGenerator {
         String[] args = new String[6];
         for (int i = 0; i < 6; i++) {
             if (i == 3) {
-                args[i] = TestContents.EXCHANGES[0];
+                args[i] = Contents.EXCHANGES[9];
             } else {
                 args[i] = randomString();
             }
@@ -73,7 +73,7 @@ public class RoutingKeyGenerator {
         String[] args = new String[6];
         for (int i = 0; i < 6; i++) {
             if (i == 3) {
-                String exch = TestContents.EXCHANGES[Math.abs(new Random().nextInt()) % 10];
+                String exch = Contents.EXCHANGES[Math.abs(new Random().nextInt()) % 10];
                 args[i] = exch;
             } else {
                 args[i] = randomString();

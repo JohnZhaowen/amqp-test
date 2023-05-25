@@ -26,6 +26,8 @@ public class TestCase9ConsumerMsgListener extends AbstractFuncConsumerMsgListene
     protected void onMsgEnd(AmqpMessage message,long seq_no) {
         long sendTotal = message.getTotal();
         byte sender = message.getSender();
+        long seq = message.getSeq();
+        logger.info("收到结束标识包，发送端标识：{},发送端结束序号：{},broker end seq_no:{}", sender,seq,seq_no);
         if(sender ==1){
             //判断收到的数量是否与发送的数量相等 只适用于全部收到的
             if(sendTotal != total1){

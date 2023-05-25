@@ -49,11 +49,15 @@ public class SimpleSub implements IPubSub {
 
     @Override
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
-
-        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(listener);
+        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(listener,
+                testCaseEnum,queue,bindingKeys,ksKingMQ);
         String apiId =environment.getProperty("apiId");
         if(StringUtils.isNotBlank(apiId)){
             ksKingMQ.OverrideParameter("ApiId",apiId);
+        }
+        String groupId = environment.getProperty("groupId");
+        if(StringUtils.isNotBlank(groupId)){
+            ksKingMQ.OverrideParameter("GroupId",groupId);
         }
         //连接 broker
         APIResult apiResult = ksKingMQ.ConnectServer(ksKingMQServerAPI);
@@ -62,7 +66,20 @@ public class SimpleSub implements IPubSub {
                     apiResult.toString());
             return false;
         }
+        //判断是否连接和订阅成功
         while (true) {
+            if (ksKingMQServerAPI.connect()&&ksKingMQServerAPI.isAllSubscribeOk()) {
+                return true;
+            }
+            try {
+                logger.info("connecting server or req subscribe! wait a moment!");
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        //移到 onConnected回调事件中了
+        /*while (true) {
             if (ksKingMQServerAPI.connect()) {
                 ReqSubscribeField reqSubscribeField = new ReqSubscribeField();
                 //创建订阅topic
@@ -83,7 +100,12 @@ public class SimpleSub implements IPubSub {
                     QueueType queueType = new QueueType();
                     queueType.setDurable(durable ? 1 : 0);
                     queueType.setBindingKey(bindingKeys[i]);
-                    queueType.setOffset(offset);
+                    //最后一个设置为 从文件读取的 seq_no
+                    if(i==bindingKeys.length-1&&durable&&testCaseEnum.testCaseId>=9){
+                        queueType.setOffset(offset);
+                    }else{
+                        queueType.setOffset(-1);
+                    }
                     queueType.setQueue(queue);
                     reqSubscribeField.setElems(queueType);
                     APIResult subResult = ksKingMQ.ReqSubscribe(reqSubscribeField);
@@ -121,6 +143,7 @@ public class SimpleSub implements IPubSub {
             }
         }
         return true;
+         */
     }
 
 }

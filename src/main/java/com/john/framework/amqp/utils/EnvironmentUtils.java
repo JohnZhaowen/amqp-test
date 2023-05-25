@@ -88,6 +88,6 @@ public class EnvironmentUtils {
     }
 
     public static String getDurable(){
-        return staticEnvironment.getProperty("groupId");
+        return staticEnvironment.getProperty("durable");
     }
 }

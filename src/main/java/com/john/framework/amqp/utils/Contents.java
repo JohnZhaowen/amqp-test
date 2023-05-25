@@ -12,7 +12,7 @@ public interface Contents {
 
     String[] SOURCE_SYSTEM_ID = {"SYNFUT", "IRS"};
 
-    String[] EXCHANGES = {"ENDMARK", "SZEX", "SHEX", "CFETS", "gold", "bond", "xbond", "fx", "option", "dimple"};
+    String[] EXCHANGES = {"SZEX", "SHEX", "CFETS", "gold", "bond", "xbond", "fx", "option", "dimple","ENDMARK"};
 
     String[] PRODUCTID = {"100001", "100002", "100003", "100004", "100005", "100006", "100007", "100008", "100009", "100010",
             "100011", "100012", "100013", "100014", "100015", "100016", "100017", "100018", "100019", "100020",

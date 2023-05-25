@@ -33,7 +33,7 @@ public class BindingKeyGenerator {
     public static String[] generateAll() {
         String[] res = new String[10];
         for (int i = 0; i < 10; i++) {
-            String exchange = TestContents.EXCHANGES[i];
+            String exchange = Contents.EXCHANGES[i];
             String[] arsg = new String[1];
             arsg[0] = exchange;
             res[i] = MessageFormatter.arrayFormat(BINDING_KEY, arsg).getMessage();
@@ -44,7 +44,7 @@ public class BindingKeyGenerator {
     public static String generateEndMark() {
 
         String[] arsg = new String[1];
-        arsg[0] = TestContents.EXCHANGES[0];
+        arsg[0] = Contents.EXCHANGES[9];
         return MessageFormatter.arrayFormat(BINDING_KEY, arsg).getMessage();
     }
 

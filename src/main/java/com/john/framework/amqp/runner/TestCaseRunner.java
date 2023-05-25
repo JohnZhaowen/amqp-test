@@ -4,6 +4,8 @@ import com.john.framework.amqp.amqp.AmqpMessage;
 import com.john.framework.amqp.amqp.IMsgListener;
 import com.john.framework.amqp.amqp.IPubSub;
 import com.john.framework.amqp.amqp.NoopMsgListener;
+import com.john.framework.amqp.amqp.PerfStatisticsConsumerBigMsgListener;
+import com.john.framework.amqp.amqp.PerfStatisticsConsumerLittleMsgListener;
 import com.john.framework.amqp.amqp.SlowConsumerMsgListener;
 import com.john.framework.amqp.functest.PreSettingBindingKeys;
 import com.john.framework.amqp.functest.TestCase10ConsumerMsgListener;
@@ -16,7 +18,6 @@ import com.john.framework.amqp.utils.EnvironmentUtils;
 import com.john.framework.amqp.utils.MD5Utils;
 import com.john.framework.amqp.utils.MessageBodyGenerator;
 import com.john.framework.amqp.utils.RoutingKeyGenerator;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 
 @Component
 public class TestCaseRunner implements CommandLineRunner {
@@ -75,7 +78,14 @@ public class TestCaseRunner implements CommandLineRunner {
     private void doPubsub(TestCaseEnum testCase) {
         //全部订阅
         String[] bindingKeys = BindingKeyGenerator.generateAll();
-        boolean sub = pubSub.sub(bindingKeys, EnvironmentUtils.getQueueName(testCase), testCase.durable, null);
+        IMsgListener msgListener = null;
+        //按测试用例来
+        if(testCase.testCaseId==2){
+            msgListener = new PerfStatisticsConsumerBigMsgListener(testCase);
+        }else{
+            msgListener = new PerfStatisticsConsumerLittleMsgListener(testCase);
+        }
+        boolean sub = pubSub.sub(bindingKeys, EnvironmentUtils.getQueueName(testCase), testCase.durable, msgListener);
         if (sub) {
               //如果是pub sub一起的就当作是性能测试，功能测试 pub sub分开统计
             doPerfKsPub(testCase);
@@ -94,19 +104,20 @@ public class TestCaseRunner implements CommandLineRunner {
         IMsgListener msgListener = null;
         if(testCase.testCaseId<=8){
             bindingKeys = new String[2];
-            bindingKeys[0] = BindingKeyGenerator.generateEndMark();
-            bindingKeys[1] = BindingKeyGenerator.generate();
+            bindingKeys[0] = BindingKeyGenerator.generate();
+            bindingKeys[1] = BindingKeyGenerator.generateEndMark();
             msgListener = testCase.slowConsumer && uniqueId == 5 ? new SlowConsumerMsgListener() : new NoopMsgListener();
         }else if(testCase.testCaseId==9){
             //保证都能收到
             bindingKeys = BindingKeyGenerator.generateAll();
+
             msgListener = new TestCase9ConsumerMsgListener(testCase);
         }else if(testCase.testCaseId == 10){
             //只保证匹配到的都能收到
             bindingKeys = new String[2];
-            bindingKeys[0] = BindingKeyGenerator.generateEndMark();
+            bindingKeys[0] = PreSettingBindingKeys.generate();
             //提前预设好的 binding key
-            bindingKeys[1] = PreSettingBindingKeys.generate();
+            bindingKeys[1] = BindingKeyGenerator.generateEndMark();
             msgListener = new TestCase10ConsumerMsgListener(testCase);
         }else if(testCase.testCaseId == 11){
             //保证都能收到
@@ -119,10 +130,11 @@ public class TestCaseRunner implements CommandLineRunner {
         }else if(testCase.testCaseId == 13){
             //只保证匹配到的都能收到
             bindingKeys = new String[2];
-            bindingKeys[0] = BindingKeyGenerator.generateEndMark();
-            bindingKeys[1] = BindingKeyGenerator.generate();
+            bindingKeys[0] = BindingKeyGenerator.generate();
+            bindingKeys[1] = BindingKeyGenerator.generateEndMark();
             msgListener = testCase.slowConsumer && uniqueId == 998 ? new SlowConsumerMsgListener() : new NoopMsgListener();
         }else throw new RuntimeException("不支持的 testCase:"+testCase.testCaseId);
+        LOG.info("sub端 binding key:{},案例:{}", Arrays.toString(bindingKeys),testCase);
         pubSub.sub(bindingKeys,
                 EnvironmentUtils.getQueueName(testCase),
                 testCase.durable,
@@ -211,6 +223,7 @@ public class TestCaseRunner implements CommandLineRunner {
         //发送endMark消息
         msg.setEndMark((byte)1);
         msg.setTotal(haveSend);
+        msg.setSeq(haveSend+1);
         pubSub.pub(msg, RoutingKeyGenerator.generateEndMsgRoutingKey(), durable);
         long tv_end = System.nanoTime();
         //计算总耗时 us

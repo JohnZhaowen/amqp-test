@@ -22,6 +22,8 @@ public class TestCase10ConsumerMsgListener extends AbstractFuncConsumerMsgListen
     protected void onMsgEnd(AmqpMessage message,long seq_no) {
         long sendTotal = message.getTotal();
         byte sender = message.getSender();
+        long seq  = message.getSeq();
+        logger.info("收到结束标识包，发送端标识：{},发送端结束序号：{},broker end seq_no:{}", sender,seq,seq_no);
         if(sender ==1){
             //只是打印一下发送端的数据量和最终收到的数据量
             logger.info("producer send total1:{},through binding key match,receive count1: [{}]",

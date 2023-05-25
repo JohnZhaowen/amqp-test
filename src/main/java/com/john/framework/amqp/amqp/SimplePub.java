@@ -92,7 +92,7 @@ public class SimplePub implements IPubSub {
             //需要统计binding key的匹配数量
             byte[] send = JavaStruct.pack(msg);
             if(testCaseEnum.testCaseId==10){
-                boolean isSend = countStatistics(routingKey);
+                boolean isSend = countStatistics(routingKey,msg);
                 if(isSend||msg.getEndMark()==1){
                     ksKingMQ.publish(routingKey, send, persist);
                 }
@@ -108,16 +108,18 @@ public class SimplePub implements IPubSub {
         }
     }
 
-    private boolean countStatistics(String routingKey) {
+    private boolean countStatistics(String routingKey,AmqpMessage msg) {
         boolean send = false;
         for(int i = 0; i < preSettingBindingKeys.length; i++){
             String bindingKey = preSettingBindingKeys[i];
-            if(MessageMatherUtils.match(routingKey,bindingKey)){
-                logger.info("routing key:{},bindingKey:{}",routingKey,bindingKey);
+            if(msg.getEndMark()!=1&&MessageMatherUtils.match(routingKey,bindingKey)){
+                logger.debug("routing key:{},bindingKey:{}",routingKey,bindingKey);
                 Integer count = consumerMsgCountMap.get(bindingKey);
                 count =  count==null? 1:count+1;
                 consumerMsgCountMap.put(preSettingBindingKeys[i], count);
                 send = true;
+                //binding key在设计在上互斥的 只要有一个匹配 后面的绝对匹配不上
+                break;
             }
         }
         return send;
