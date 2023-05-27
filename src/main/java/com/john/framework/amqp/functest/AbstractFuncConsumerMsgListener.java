@@ -10,7 +10,6 @@ import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 
 /**
  * @Description TODO
@@ -23,14 +22,18 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
 
     protected TestCaseEnum testCaseEnum;
 
-    //接收端1收到的总数量
+    private String queueFileName;
+
+    //实际接收发送端1收到的总数量
     protected long total1;
 
-    //接收端2收到的总数量
+    //实际接收发送端2收到的总数量
     protected long total2;
 
+    //发送端1定序的序号
     protected long lastSeqNo1;
 
+    //发送端2定序的序号 只有用例9场景下才有发送2 其他都只有一个发送端
     protected long lastSeqNo2;
 
     //broker定序序号
@@ -38,18 +41,22 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
 
     public AbstractFuncConsumerMsgListener(TestCaseEnum testCaseEnum){
         this.testCaseEnum = testCaseEnum;
+        this.queueFileName = EnvironmentUtils.getSeqNoFileName(testCaseEnum);
     }
 
     //抽象类完成 顺序检验，body验证，
     @Override
     public void onMsg(String routingKey, byte[] pMsgbuf, long seq_no) {
+        if(testCaseEnum.durable&&seq_no != seqNo+1){
+            logger.error("broker seq error, broker seq should be [{}] ,but is [{}]", seqNo+1, seq_no);
+        }
         seqNo = seq_no;
         AmqpMessage packet = new AmqpMessage(pMsgbuf.length);
         try {
             JavaStruct.unpack(packet, pMsgbuf);
             //只有持久化才会保存seq_no
             if(testCaseEnum.durable){
-                FileUtils.writeSeqNo(EnvironmentUtils.getSeqNoFileName(testCaseEnum),seq_no);
+                FileUtils.writeSeqNo(queueFileName,seq_no);
             }
             byte sender =packet.getSender();
             long seq = packet.getSeq();
@@ -81,7 +88,8 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
                     }
                     //保证顺序消费 其实这里不严格 严格来说  是以broker收到的顺序为准
                     //仅限于 9和10案例
-                    if(testCaseEnum.testCaseId==9||testCaseEnum.testCaseId==10){
+                    if(testCaseEnum.testCaseId==9||testCaseEnum.testCaseId==10||
+                            (testCaseEnum.durable&&testCaseEnum.testCaseId==12)){
                         if(seq <= lastSeqNo1 ){
                             logger.error("producer1 seq error,  seq[{}] should be > lastSeqNo1 [{}] ,but not", seq, lastSeqNo1);
                         }
@@ -113,7 +121,8 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
                     }
                     //保证顺序消费 其实这里不严格 严格来说  是以broker收到的顺序为准
                     //仅限于 9和10案例
-                    if(testCaseEnum.testCaseId==9||testCaseEnum.testCaseId==10) {
+                    if(testCaseEnum.testCaseId==9||testCaseEnum.testCaseId==10||
+                            (testCaseEnum.durable&&testCaseEnum.testCaseId==12)) {
                         if (seq <= lastSeqNo2) {
                             logger.error("producer2 seq error,  seq[{}] should be > lastSeqNo2 [{}] ,but not", seq, lastSeqNo2);
                         }
@@ -125,6 +134,23 @@ public abstract class AbstractFuncConsumerMsgListener implements IMsgListener {
         } catch (StructException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void mark(long seqNo) {
+        //只有在持久化 并且是 total1 == 0 的情况下 也就是
+        // 重启情况下设置 如果断线重连不会设置 因为断线重连之后程序状态的值还是存在的
+        // 此种情况下是当前还没有消费完上一次发送的
+        if(testCaseEnum.durable&&total1==0){
+            this.total1 = seqNo;
+            this.seqNo = seqNo;
+            logger.info("持久化情况下，边接成功能后设置 total1接收的总数：{}，se",total1);
+        }
+    }
+
+    @Override
+    public void onDisConnectMark() {
+        logger.info("连接时当前内部消费消息情况，producer1 receive total1:{}, last sender seq1:{}",total1,lastSeqNo1);
     }
 
     //子类需要扩展的 关于结束标识的

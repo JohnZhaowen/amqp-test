@@ -125,14 +125,14 @@ public class TestCaseRunner implements CommandLineRunner {
             msgListener = new TestCase11ConsumerMsgListener(testCase);
         }else if(testCase.testCaseId ==12){
             //保证都能收到
-            bindingKeys = BindingKeyGenerator.generateAll();
+            bindingKeys = BindingKeyGenerator.generateAllInOne();
             msgListener = new TestCase12ConsumerMsgListener(testCase);
         }else if(testCase.testCaseId == 13){
             //只保证匹配到的都能收到
             bindingKeys = new String[2];
             bindingKeys[0] = BindingKeyGenerator.generate();
             bindingKeys[1] = BindingKeyGenerator.generateEndMark();
-            msgListener = testCase.slowConsumer && uniqueId == 998 ? new SlowConsumerMsgListener() : new NoopMsgListener();
+            msgListener = testCase.slowConsumer && uniqueId == 1 ? new SlowConsumerMsgListener() : new NoopMsgListener();
         }else throw new RuntimeException("不支持的 testCase:"+testCase.testCaseId);
         LOG.info("sub端 binding key:{},案例:{}", Arrays.toString(bindingKeys),testCase);
         pubSub.sub(bindingKeys,

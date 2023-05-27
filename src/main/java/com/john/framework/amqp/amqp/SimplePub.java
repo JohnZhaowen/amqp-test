@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SimplePub implements IPubSub {
 
@@ -31,6 +34,8 @@ public class SimplePub implements IPubSub {
 
     private TestCaseEnum testCaseEnum;
     private Environment environment;
+
+    private KSKingMQServerAPI ksKingMQServerAPI;
 
     //为案例9 测试
     private String[] preSettingBindingKeys = PreSettingBindingKeys.getPreSettingBindingKeys();
@@ -57,7 +62,7 @@ public class SimplePub implements IPubSub {
         compressLen = Integer.parseInt(environment.getProperty("compressLen", TestContents.MSG_SIZE_OF_2M+""));
         ksKingMQ = KSKingMQ.CreateKingMQ("./config_pub.ini");
         packetSize = testCaseEnum.msgSize;
-        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(new NoopMsgListener());
+        ksKingMQServerAPI = new KSKingMQServerAPI(new NoopMsgListener());
         String apiId =environment.getProperty("apiId");
         if(StringUtils.isNotBlank(apiId)){
             ksKingMQ.OverrideParameter("ApiId",apiId);
@@ -89,21 +94,31 @@ public class SimplePub implements IPubSub {
     @Override
     public void pub(AmqpMessage msg, String routingKey, int persist) {
         try {
-            //需要统计binding key的匹配数量
-            byte[] send = JavaStruct.pack(msg);
-            if(testCaseEnum.testCaseId==10){
-                boolean isSend = countStatistics(routingKey,msg);
-                if(isSend||msg.getEndMark()==1){
-                    ksKingMQ.publish(routingKey, send, persist);
+            while (true){
+                if(ksKingMQServerAPI.connect()){
+                    //需要统计binding key的匹配数量
+                    byte[] send = JavaStruct.pack(msg);
+                    if(testCaseEnum.testCaseId==10){
+                        boolean isSend = countStatistics(routingKey,msg);
+                        if(isSend||msg.getEndMark()==1){
+                            ksKingMQ.publish(routingKey, send, persist);
+                        }
+                        if(msg.getEndMark()==1){
+                            logger.info("testCaseId:{},routingKey match bindingKey detail:{}",
+                                    testCaseEnum.testCaseId,consumerMsgCountMap);
+                        }
+                    }else{
+                        ksKingMQ.publish(routingKey, send, persist);
+                    }
+                    //退出循环
+                    break;
+                }else{
+                    Thread.sleep(1000);
+                    logger.error("api disconnect can not send msg!");
                 }
-                if(msg.getEndMark()==1){
-                    logger.info("testCaseId:{},routingKey match bindingKey detail:{}",
-                            testCaseEnum.testCaseId,consumerMsgCountMap);
-                }
-            }else{
-                ksKingMQ.publish(routingKey, send, persist);
             }
-        } catch (StructException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

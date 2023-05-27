@@ -30,6 +30,11 @@ public class BindingKeyGenerator {
         return RANDOM_BINGING_KEYS[Math.abs(new Random().nextInt()) % 10];
     }
 
+    public static String[] generateAllInOne() {
+        String[] allInOne = {"pilot.default.JET.SZ.*.*.*.*.*.*"};
+        return allInOne;
+    }
+
     public static String[] generateAll() {
         String[] res = new String[10];
         for (int i = 0; i < 10; i++) {

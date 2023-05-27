@@ -65,6 +65,7 @@ public class KSKingMQServerAPI extends KSKingMQSPI implements KSKingMQServerStat
     @Override
     public void OnConnected() {
         logger.info("OnConnected callback, sub client connected to broker!");
+        if(msgListener!=null) msgListener.onDisConnectMark();
         connect = true;
         try {
             //重置
@@ -98,6 +99,7 @@ public class KSKingMQServerAPI extends KSKingMQSPI implements KSKingMQServerStat
                 long seq_no = FileUtils.readSeqNo(fileName);
                 logger.info("read csv name:{},queue name:{},seq_no:{}",fileName,queue,seq_no);
                 offset = (int)seq_no;
+                msgListener.mark(seq_no);
             }
             for (int i = 0; i < bindingKeys.length; i++) {
                 reqSubscribeField.setCnt(1);
@@ -130,6 +132,7 @@ public class KSKingMQServerAPI extends KSKingMQSPI implements KSKingMQServerStat
     public void OnDisconnected(ReConnectStatus reConnectStatus, ErrorInfo pErrorInfo) {
         logger.warn("OnDisconnected callback, sub client disconnected to broker! error code:{},errMsg:{}",
                 pErrorInfo.getErrorId(),pErrorInfo.getErrorMessage());
+        this.connect = false;
     }
 
     @Override
