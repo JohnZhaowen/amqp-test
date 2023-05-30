@@ -7,8 +7,13 @@ public class NoopMsgListener implements IMsgListener{
 
     private static final Logger logger = LoggerFactory.getLogger(NoopMsgListener.class);
 
+    private volatile int count;
+
     @Override
     public void onMsg(String routingKey, byte[] pMsgbuf, long seq_no) {
-
+        count++;
+        if(count%1000==0){
+            logger.info("Im noop,current receive count:{}",count);
+        }
     }
 }

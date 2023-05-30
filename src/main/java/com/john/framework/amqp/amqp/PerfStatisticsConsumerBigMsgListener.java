@@ -161,8 +161,6 @@ public class PerfStatisticsConsumerBigMsgListener implements IMsgListener{
                 long start = unzipByteBuffer.getLong();
                 int  latency = (int)((end - start) / 1000);
                 latencyInUsList.add(latency);
-                msg = null;
-                unzip = null;
             }catch (Exception e){
                 e.printStackTrace();
             }finally {

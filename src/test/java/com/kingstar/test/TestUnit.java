@@ -42,6 +42,29 @@ public class TestUnit {
         System.out.println(start1);
     }
 
+    //@Test
+    public void testSnappy() throws IOException {
+        byte[] data = new byte[2*1024*1024];
+        for(int j=0;j<10000;j++){
+            long start = System.nanoTime();
+            System.out.println(start);
+            byteBuffer.putLong(start);
+            int end = byteBuffer.limit();
+            for (int i = 0; i < end; i++) data[i] = byteBuffer.get(i);
+            byte[] zip = Snappy.compress(data);
+            byteBuffer.clear();
+            System.out.println(zip.length);
+            System.out.println(Snappy.isValidCompressedBuffer(zip));
+            System.out.println(Snappy.isValidCompressedBuffer(data));
+            byte[] unzip = Snappy.uncompress(zip);
+            byteBuffer1.put(unzip,0,8);
+            byteBuffer1.flip();
+            long start1 = byteBuffer1.getLong();
+            byteBuffer1.clear();
+            System.out.println(start1);
+        }
+    }
+
     @Test
     public void test3(){
         System.out.println(byteBuffer.getLong());
