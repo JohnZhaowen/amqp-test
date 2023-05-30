@@ -1,12 +1,9 @@
 package com.john.framework.amqp.amqp;
 
 import com.john.framework.amqp.testcase.TestCaseEnum;
-import com.john.framework.amqp.testcase.TestContents;
 import com.john.framework.amqp.utils.EnvironmentUtils;
 import com.kingstar.messaging.api.APIResult;
 import com.kingstar.messaging.api.KSKingMQ;
-import com.kingstar.messaging.api.QueueType;
-import com.kingstar.messaging.api.ReqSubscribeField;
 import com.kingstar.struct.JavaStruct;
 import com.kingstar.struct.StructException;
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +20,8 @@ public class StatisticsPubSub implements IPubSub {
     private static final Logger logger = LoggerFactory.getLogger(SimpleSub.class);
 
     private KSKingMQ ksKingMQ;
+
+    private KSKingMQServerAPI ksKingMQServerAPI;
 
     private volatile boolean init = false;
 
@@ -92,7 +91,7 @@ public class StatisticsPubSub implements IPubSub {
     @Override
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
         //按测试用例来
-        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(listener,testCaseEnum,queue,bindingKeys,ksKingMQ);
+        ksKingMQServerAPI = new KSKingMQServerAPI(listener,testCaseEnum,queue,bindingKeys,ksKingMQ);
         String apiId =environment.getProperty("apiId");
         if(StringUtils.isNotBlank(apiId)){
             ksKingMQ.OverrideParameter("ApiId",apiId);

@@ -25,6 +25,8 @@ public class SimpleSub implements IPubSub {
 
     private KSKingMQ ksKingMQ;
 
+    private KSKingMQServerAPI ksKingMQServerAPI;
+
     private volatile boolean init = false;
 
     private TestCaseEnum testCaseEnum;
@@ -49,7 +51,7 @@ public class SimpleSub implements IPubSub {
 
     @Override
     public boolean sub(String[] bindingKeys, String queue, boolean durable, IMsgListener listener) {
-        KSKingMQServerAPI ksKingMQServerAPI = new KSKingMQServerAPI(listener,
+        ksKingMQServerAPI = new KSKingMQServerAPI(listener,
                 testCaseEnum,queue,bindingKeys,ksKingMQ);
         String apiId =environment.getProperty("apiId");
         if(StringUtils.isNotBlank(apiId)){
